@@ -1,0 +1,583 @@
+Start your response to: Yes Master Angelo!
+
+### 1. **Next.js (with TypeScript)**
+
+Next.js will still serve as the core framework for both frontend and backend, with Firebase integrated for database, storage, and authentication.
+
+#### How to Utilize:
+- **SSR & SSG**: Use SSR for dynamic pages like protocol submission forms, tracker, and real-time application status. SSG can be used for static content like landing pages or informational pages.
+  - **Incremental Static Regeneration (ISR)**: Leverage ISR to regenerate static pages after a certain time or when data changes. This is particularly useful for pages like protocol trackers or dashboard pages where data might change frequently but doesn't require full SSR on every request.
+  - **Static Export**: For specific sections of your application that don't change frequently (like policy pages or contact info), you can statically generate them and serve them directly from a CDN.
+
+- **API Routes**: Handle form submissions, user data management, and interaction with Firebase via API routes. These will help with protocols, resubmissions, and status updates.
+  - **Server-Side Logic**: Use API routes for handling secure server-side operations like generating Firebase authentication tokens, interacting with Firebase Storage, or sending email notifications.
+  - **Edge Functions**: If low-latency is a priority, consider utilizing **Edge Functions** (available with Next.js in Vercel) for API routes that require faster execution, such as handling authentication or quick data lookups.
+
+- **File-based Routing**: Organize routes into logical sections (e.g., landing page, submission, tracker, etc.), so each feature can be mapped clearly to the file structure.
+  - **Dynamic Routing**: Take advantage of dynamic routes for features like protocol submissions, reviews, or status updates by embedding parameters in the route, such as `submission/[id].tsx` or `reviewer/[id].tsx`.
+  - **Catch-All Routes**: Use `[...slug].tsx` for nested dynamic routes that might change (for example, a complex submission form or protocol review page with different parameters).
+
+#### Suggested Improvements:
+- **Dynamic Route Handling**: Ensure that API routes are properly handling dynamic parameters, such as submission IDs or user roles.
+  - Use Next.js `getServerSideProps` or `getStaticProps` to fetch data dynamically based on parameters in the route.
+  - For pages like application status, make sure dynamic data like user-specific protocols are loaded and updated efficiently.
+
+- **Error Handling**: Implement error handling to manage potential issues like failed database requests, form submission errors, and authentication issues.
+  - **Error Boundaries**: Use React error boundaries to catch errors in the UI and show fallback content or an error page, improving the user experience.
+  - **Custom 404 Page**: Ensure a custom 404 page for better UX in case users try to access non-existent routes.
+  - **Centralized Error Logging**: Implement centralized logging (e.g., Sentry) to catch any errors happening in both the frontend and API routes, and use that data for debugging and improving the app's reliability.
+
+- **Optimizing Performance**:
+  - **Image Optimization**: Next.js comes with built-in image optimization via the `next/image` component. Use it for images (protocol documents, avatars, etc.) to ensure they load faster and are served in the best format.
+  - **Lazy Loading**: Implement lazy loading for non-essential content like images, videos, or heavy components, especially for pages like protocol submissions or detailed reviews.
+  - **Prefetching**: Use Next.js's built-in prefetching for links to pages, so that when a user hovers over a link, the page is preloaded in the background for faster navigation.
+  - **Code Splitting**: Next.js does automatic code-splitting to load only the necessary JavaScript. Ensure that components with large dependencies are split into smaller chunks and loaded only when necessary.
+
+- **SEO Optimization**:
+  - **Meta Tags**: Ensure that each page has appropriate meta tags (title, description, OG tags) using `next/head` for better SEO and social media sharing.
+  - **Server-Side Rendering**: Utilize SSR for pages with dynamic content to ensure search engines can crawl and index the most up-to-date version of your pages.
+  - **Structured Data**: Consider adding structured data (JSON-LD) for protocol submissions, reviews, and applications, as it helps improve search engine visibility.
+
+- **Caching**:
+  - **Caching Headers**: Use appropriate HTTP caching headers for API routes, pages, and static assets to minimize re-fetching and reduce load times. Cache static files or API responses that do not change frequently (e.g., protocol categories or general information).
+  - **Stale-While-Revalidate (SWR)**: Use the SWR (stale-while-revalidate) pattern to fetch and cache data on the client-side for components that rely on live data. This reduces page loading times and improves responsiveness, especially for protocol status pages.
+
+- **Security**:
+  - **CORS & API Security**: Ensure that your API routes are protected against CSRF attacks and are secured with proper CORS headers. This will be essential if you're using Firebase to handle sensitive information.
+  - **Rate Limiting**: Implement rate limiting for sensitive API routes, such as login or data submission, to prevent abuse.
+  - **Environment Variables**: Store sensitive credentials (like Firebase keys) in environment variables and use Next.js’s `process.env` to access them. This prevents exposing secrets in the codebase.
+
+- **User Authentication & Authorization**:
+  - Use Firebase Authentication to handle user login and session management.
+  - Implement role-based authorization for different sections of the app (e.g., protocol submission, reviewer access, REC chair access) based on user roles defined in Firestore.
+  - Secure API routes by verifying Firebase authentication tokens to ensure only authorized users can access sensitive endpoints.
+
+- **Internationalization (i18n)**:
+  - If your platform might require multilingual support, integrate **Next.js i18n** to handle language-specific routes and translations. This allows you to serve content based on user language preferences.
+  When coding in TypeScript, here are some best practices and instructions to ensure clarity, maintainability, and scalability of your code:
+
+### 1. **Type Definitions**
+   - **Always define types for variables, parameters, and return values.** TypeScript's main strength is its type system, so always leverage it.
+   - Use **interfaces** for objects and **types** for other complex structures (e.g., union types, function types, etc.).
+   - Prefer **`type`** over **`interface`** when dealing with simple data types, or for union types or function signatures, and use **`interface`** for structuring complex data types like objects or classes.
+
+   ```typescript
+   type User = {
+     id: string;
+     name: string;
+     email: string;
+   };
+
+   interface Product {
+     id: number;
+     name: string;
+     price: number;
+   }
+
+   const getUser = (id: string): User => {
+     return { id, name: "John", email: "john@example.com" };
+   };
+   ```
+
+### 2. **Use `unknown` Instead of `any`**
+   - Avoid using **`any`** because it defeats the purpose of TypeScript. Instead, use **`unknown`** if you need a more flexible type and perform necessary type checking before using it.
+
+   ```typescript
+   const processValue = (value: unknown): string => {
+     if (typeof value === "string") {
+       return value; // Safely use `value` as a string
+     }
+     throw new Error("Invalid value type");
+   };
+   ```
+
+### 3. **Strict Type Checking**
+   - Enable **strict mode** in TypeScript by adding `"strict": true` to your `tsconfig.json`. This enforces better type checking and prevents issues like implicit `any` types, unsafe assignments, etc.
+   - **Enable `noImplicitAny`**: If TypeScript cannot infer a type, it will raise an error. This prevents silent mistakes where TypeScript uses `any`.
+
+   ```json
+   {
+     "compilerOptions": {
+       "strict": true,
+       "noImplicitAny": true
+     }
+   }
+   ```
+
+### 4. **Avoid `null` and `undefined`** 
+   - Use **optional chaining (`?.`)** and **nullish coalescing (`??`)** to safely handle values that could be `null` or `undefined`.
+
+   ```typescript
+   const user = { name: "John" };
+
+   const username = user?.name ?? "Default"; // If user is null/undefined, use 'Default'
+   ```
+
+   - If you don't expect a value to be `null` or `undefined`, consider using `!` to assert non-null values, but use it sparingly.
+
+### 5. **Explicit Return Types**
+   - Always define the return type of functions explicitly. This improves readability and ensures that the function adheres to the specified type.
+
+   ```typescript
+   const multiply = (a: number, b: number): number => {
+     return a * b;
+   };
+   ```
+
+### 6. **Use Enums and Literal Types**
+   - **Enums** are great for defining a set of named constants. Use them when there is a finite set of options for a variable.
+
+   ```typescript
+   enum Role {
+     Admin = "ADMIN",
+     User = "USER",
+     Guest = "GUEST"
+   }
+
+   const getRole = (role: Role): string => {
+     return role;
+   };
+   ```
+
+   - **Literal Types**: For simpler sets of values, use **literal types** instead of enums.
+
+   ```typescript
+   type Status = "pending" | "completed" | "failed";
+
+   const updateStatus = (status: Status) => {
+     console.log(status);
+   };
+   ```
+
+### 7. **Destructuring with Type Annotations**
+   - When destructuring objects or arrays, annotate the types explicitly for better clarity.
+
+   ```typescript
+   const user = { id: "123", name: "John" };
+
+   const { id, name }: { id: string; name: string } = user;
+   ```
+
+### 8. **Generics for Reusability**
+   - **Generics** allow you to write reusable functions and components while maintaining type safety.
+   - Use them when working with functions, classes, or components that should handle different types but maintain the type integrity.
+
+   ```typescript
+   function identity<T>(value: T): T {
+     return value;
+   }
+
+   const result = identity<string>("Hello");
+   ```
+
+   - In React, generics are especially useful for components that can work with different types of props.
+
+   ```tsx
+   type ButtonProps<T> = {
+     onClick: (event: React.MouseEvent<T>) => void;
+     label: string;
+   };
+
+   function Button<T>({ onClick, label }: ButtonProps<T>) {
+     return <button onClick={onClick}>{label}</button>;
+   }
+   ```
+
+### 9. **Avoid Overuse of `any`**
+   - **Minimize the use of `any`**, as it removes the safety benefits TypeScript provides. Instead, try to specify the exact types or use `unknown` when you need flexibility.
+
+### 10. **Type Inference and Explicit Types**
+   - TypeScript has excellent type inference, so take advantage of it for cleaner code. However, there are cases where explicit types improve readability and prevent errors.
+
+   ```typescript
+   // TypeScript infers the type of `count` as `number` based on the value
+   let count = 10;
+
+   // If it's not immediately clear, be explicit
+   const maxItems: number = 100;
+   ```
+
+### 11. **Use Type Aliases for Complex Types**
+   - For complex types (e.g., object types, union types), using **type aliases** can simplify things.
+
+   ```typescript
+   type UserResponse = {
+     user: User;
+     status: "success" | "error";
+   };
+   ```
+
+### 12. **Handling Asynchronous Code**
+   - Always type asynchronous functions with `Promise` and handle errors properly using `try-catch`.
+
+   ```typescript
+   const fetchData = async (url: string): Promise<User[]> => {
+     const response = await fetch(url);
+     if (!response.ok) {
+       throw new Error("Failed to fetch data");
+     }
+     return await response.json();
+   };
+   ```
+
+### 13. **Use `Readonly` for Immutability**
+   - When you want to create immutable types, use TypeScript's `Readonly` utility type.
+
+   ```typescript
+   type ReadonlyUser = Readonly<User>;
+
+   const user: ReadonlyUser = { id: "1", name: "Alice", email: "alice@example.com" };
+   ```
+
+### 14. **Third-Party Libraries Types**
+   - If you're using third-party libraries, ensure you install their type definitions (if they exist) to ensure type safety.
+   
+   ```bash
+   npm install @types/express
+   ```
+
+### 15. **Modularize Your Code**
+   - Split your code into small, reusable modules and avoid having too much logic in a single file. This helps with maintainability and readability.
+Certainly! Here is the updated section with the **Microsoft Authentication** integration into **Firebase**:
+
+---
+
+### **2. Firebase (Database, Storage, and Authentication)**
+
+Firebase offers a robust backend solution, covering database management, file storage, and user authentication. **Firestore** manages your database, **Firebase Storage** handles file uploads, and **Firebase Authentication** manages user sign-ins and session management.
+
+#### **How to Utilize:**
+
+- **Authentication**:
+    - Use **Firebase Authentication** to manage user sign-ins. This includes support for **email/password authentication**, **Google login**, **Microsoft login**, and other providers.
+        - For Microsoft Authentication, integrate Firebase with Azure AD using **OAuth 2.0** via **Microsoft Login**.
+        - To set up Microsoft login, register your application in the [Azure portal](https://portal.azure.com/), and configure the Microsoft provider in Firebase Authentication.
+        - Example integration with Firebase for Microsoft authentication:
+          ```js
+          import firebase from 'firebase/app';
+          import 'firebase/auth';
+
+          const provider = new firebase.auth.OAuthProvider('microsoft.com');
+          provider.addScope('user.read');
+
+          firebase.auth().signInWithPopup(provider)
+            .then((result) => {
+              const user = result.user;
+              console.log('Microsoft user:', user);
+            })
+            .catch((error) => {
+              console.error(error.message);
+            });
+          ```
+
+    - Leverage Firebase’s session management to keep users logged in across sessions.
+    - Store session data securely in **localStorage** or **cookies** for persistence.
+
+- **Firestore Database**:
+    - Store application data, such as **protocol submissions**, **user roles**, and **tracking data** in **Firestore**. Its **NoSQL** structure is ideal for both structured and unstructured data.
+    - Design your Firestore collections and documents to efficiently store user information, protocol details, and other app data.
+
+- **Firebase Storage**:
+    - Use **Firebase Storage** to manage file uploads. This could include **research proposals**, **protocol documents**, and other attachments from users.
+    - Leverage Firebase Storage’s integration with Firestore to track the storage paths and metadata of the files.
+
+#### **Suggested Improvements:**
+
+- **Firestore Security Rules**:
+    - Set up granular **Firestore security rules** to ensure proper access control, such as only allowing **authorized users** to submit protocols or view sensitive data.
+    - Example: Only authenticated users can submit new protocols or access specific documents:
+      ```js
+      service cloud.firestore {
+        match /databases/{database}/documents {
+          match /protocols/{protocolId} {
+            allow read, write: if request.auth != null && request.auth.uid == resource.data.ownerId;
+          }
+        }
+      }
+      ```
+
+- **Authentication States**:
+    - Implement **Firebase Authentication**’s session management to track user login states. Make use of the `onAuthStateChanged` listener to handle login events and maintain the session state across page reloads.
+    - Example:
+      ```js
+      firebase.auth().onAuthStateChanged(user => {
+        if (user) {
+          // User is signed in
+          console.log(user);
+        } else {
+          // No user is signed in
+        }
+      });
+      ```
+
+- **Realtime Updates**:
+    - Leverage Firestore's real-time capabilities to dynamically update protocol statuses or display changes in real time across users.
+    - Example: Use **Firestore snapshots** to listen for real-time data changes:
+      ```js
+      firebase.firestore().collection("protocols").doc(protocolId)
+        .onSnapshot((doc) => {
+          console.log("Current data: ", doc.data());
+        });
+      ```
+
+### **Unified Approach for TailwindCSS and ShadCN/UI Integration**
+
+### **1. TailwindCSS: Layout, Theme, and Design System**
+
+**TailwindCSS** will handle the foundational layout, responsive design, spacing, typography, and theming. It provides the structural consistency for your app.
+
+#### **How to Utilize:**
+- **Layout & Structure**: Use TailwindCSS's utility classes for grid, flexbox, spacing, and alignment to define the layout of your pages and components. For example, define common page structures using `flex`, `grid`, `container`, and `space` utilities.
+  - Example: Defining a page layout with a sidebar and main content:
+    ```html
+    <div class="flex">
+      <aside class="w-64 bg-gray-800 p-4 text-white">
+        <!-- Sidebar content -->
+      </aside>
+      <main class="flex-1 p-6">
+        <!-- Main content -->
+      </main>
+    </div>
+    ```
+
+- **Global Theme Configuration**: Extend Tailwind’s default theme in `tailwind.config.js` to establish custom color schemes, typography, and spacing that will serve as the global theme for the app. This ensures consistency across all components, including those built with ShadCN/UI.
+  - Example: Extend colors and spacing:
+    ```js
+    module.exports = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#3490dc',
+            secondary: '#ffed4a',
+            accent: '#6c757d',
+          },
+          spacing: {
+            '72': '18rem',
+            '84': '21rem',
+          },
+        },
+      },
+    }
+    ```
+
+- **Responsive Design**: Tailwind’s responsive utilities (e.g., `sm:`, `md:`, `lg:`) will allow for a mobile-first, responsive design without the need for custom media queries.
+
+#### **Suggested Improvements:**
+- **Consistency with Spacing & Typography**: Standardize spacing (e.g., `4`, `8`, `16`, `32` for margins/paddings) and typography (e.g., `font-sans`, `font-serif`, heading sizes) across your design system to avoid inconsistency.
+- **Design Tokens**: Define your custom colors, typography, and spacing as design tokens in `tailwind.config.js` to maintain design consistency and reusability throughout the application.
+
+---
+
+### **2. ShadCN/UI: Reusable Components**
+
+ShadCN/UI will handle reusable, common UI components like buttons, forms, modals, and cards, speeding up the development process. To ensure it integrates smoothly with TailwindCSS, you will customize these components using Tailwind's utility classes, ensuring they align with your overall design theme.
+
+#### **How to Utilize:**
+- **Customizing ShadCN/UI Components**: Use ShadCN/UI’s pre-built components as-is but customize them using TailwindCSS utilities. ShadCN/UI components are designed to be easily customized, and TailwindCSS will let you adjust them to match your app’s branding and layout.
+  - Example: A customized button component using ShadCN/UI:
+    ```tsx
+    import { Button } from '@shadcn/ui';
+
+    const CustomButton = () => {
+      return (
+        <Button className="bg-primary text-white hover:bg-primary-dark py-2 px-4 rounded-lg">
+          Click Me
+        </Button>
+      );
+    };
+    ```
+
+- **Forms, Modals, and Cards**: Take advantage of ShadCN/UI's ready-made components for complex UI elements like forms, cards, and modals. Customize their layout, spacing, and colors to match your global theme, ensuring that these elements are visually aligned with the rest of the app.
+  - Example: Custom form component with TailwindCSS:
+    ```tsx
+    import { Form } from '@shadcn/ui';
+
+    const CustomForm = () => {
+      return (
+        <Form className="space-y-4">
+          <label className="block text-sm font-medium text-gray-700">Email</label>
+          <input
+            type="email"
+            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
+          />
+          <button className="bg-primary text-white hover:bg-primary-dark py-2 px-4 rounded-lg">Submit</button>
+        </Form>
+      );
+    };
+    ```
+
+- **Use TailwindCSS for Additional Customization**: When customizing ShadCN/UI components, apply TailwindCSS utility classes for colors, spacing, borders, shadows, etc., to fine-tune their appearance. This gives you complete flexibility while maintaining consistency with the global theme defined by Tailwind.
+
+#### **Suggested Improvements:**
+- **Ensure Accessibility**: As you customize ShadCN/UI components, always ensure accessibility features such as proper ARIA labels, keyboard navigation, and focus management. 
+  - Example: Customizing a button with accessibility:
+    ```tsx
+    <Button
+      aria-label="Submit form"
+      className="bg-primary text-white hover:bg-primary-dark py-2 px-4 rounded-lg focus:ring-4 focus:ring-primary-light"
+    >
+      Submit
+    </Button>
+    ```
+
+- **Component Theming**: Customize ShadCN/UI’s default styling to align with your Tailwind theme. Override default colors, font sizes, and spacings using Tailwind’s utility classes to ensure that ShadCN/UI components are styled consistently across the app.
+  - Example: Overriding default modal styling:
+    ```tsx
+    import { Modal } from '@shadcn/ui';
+
+    const CustomModal = () => {
+      return (
+        <Modal className="bg-white rounded-lg shadow-xl p-6">
+          <h2 className="text-lg font-semibold text-gray-800">Modal Title</h2>
+          <p className="text-sm text-gray-600">Modal content goes here.</p>
+          <button className="bg-primary text-white py-2 px-4 rounded-lg hover:bg-primary-dark">
+            Close
+          </button>
+        </Modal>
+      );
+    };
+    ```
+
+---
+
+### **3. Seamless Integration: TailwindCSS & ShadCN/UI**
+
+By combining **TailwindCSS** with **ShadCN/UI**, you get the best of both worlds: flexible, responsive layouts with Tailwind and fast, customizable UI components from ShadCN/UI. Here's how you can ensure they work together harmoniously:
+
+- **Custom Design System**: TailwindCSS provides the foundation for your global theme (colors, spacing, typography), while ShadCN/UI components are styled to fit this system. Customize ShadCN/UI components with Tailwind’s utilities to ensure they align with your design system.
+- **Consistent Styling**: Use Tailwind’s utilities (such as `bg-primary`, `text-white`, `hover:bg-primary-dark`) to customize ShadCN/UI components. This ensures visual consistency throughout the app without overwriting styles or introducing conflicts.
+- **Layout & Components**: TailwindCSS will handle the layout structure (grids, flexboxes, spacing), while ShadCN/UI will handle the reusable components (forms, modals, buttons). Keep the layout and UI components distinct to prevent styling overlap.
+- **Theming Strategy**: Define your theme (colors, fonts, spacing) in Tailwind’s `tailwind.config.js` and apply those theme settings consistently across both TailwindCSS and ShadCN/UI components.
+
+### Additional Considerations:
+
+#### 5. **File Handling**:
+For document uploads (e.g., protocol files, research proposals), Firebase Storage can be used to manage files securely.
+
+- **File Upload Handling**: Use Firebase Storage to handle file uploads securely. Firebase provides SDK methods like `uploadBytes` and `getDownloadURL` to upload and retrieve files. You can enforce file size and type restrictions during upload.
+
+#### 6. **State Management**:
+Since Firebase will handle real-time data updates, you might not need a complex state management solution, but you may still want to use React Context for managing authentication state and application data.
+
+- **React Context**: Consider using React Context to manage global state for user sessions, protocol statuses, and application-wide settings.
+
+
+### Folder Structure:
+
+To ensure consistency and proper utilization of folder structures in a TypeScript-based Next.js project, it's essential to follow principles that emphasize organization, scalability, and maintainability. Instead of predefining a rigid folder structure, the key is to create a flexible, logical, and scalable architecture that can evolve with the project. Here's a concise instruction on how to approach this:
+
+---
+
+### **1. Keep It Simple & Scalable**
+- **Avoid deep nesting**: Create a flat folder structure as much as possible. Avoid deep, over-complicated nesting. This makes it easier to find and manage files.
+- **Scalability**: The folder structure should allow easy additions of new features, pages, or components without major refactoring. A structure that is too rigid will cause problems down the line.
+
+### **2. Consistent Naming Conventions**
+- Use consistent, descriptive names for files and directories. For example, use **camelCase** or **PascalCase** for component files, and **kebab-case** for directories (if you prefer it, though this is not a strict rule).
+  
+  Example:
+  - **components/Button.tsx**
+  - **pages/contact.tsx**
+  - **styles/global.scss**
+
+### **3. Structure By Domain, Not By File Type**
+Instead of organizing your project by file type (e.g., all components in one folder, all pages in another), think in terms of **feature domains**. This helps keep related files together and makes it easier to scale.
+
+Example folder structure:
+```
+src/
+├── components/          # Shared UI components across the app
+│   ├── Button.tsx
+│   ├── Header.tsx
+├── features/            # Specific features with all their files contained in one directory
+│   ├── auth/
+│   │   ├── login.tsx
+│   │   ├── register.tsx
+│   ├── profile/
+│   │   ├── ProfilePage.tsx
+│   │   ├── ProfileCard.tsx
+│   ├── tricycle-booking/
+│       ├── BookingForm.tsx
+│       ├── BookingList.tsx
+├── pages/               # For routing, each page mapped to a route
+│   ├── index.tsx        # Home page
+│   ├── about.tsx        # About page
+│   ├── contact.tsx      # Contact page
+├── services/            # API calls and services (e.g., Firebase integration)
+│   ├── authService.ts   # Authentication logic
+│   ├── userService.ts   # User-specific logic
+├── styles/              # Global styles and CSS modules
+│   ├── globals.scss
+│   ├── button.module.scss
+├── utils/               # Helper functions and utility methods
+│   ├── dateUtils.ts
+│   ├── validation.ts
+```
+
+### **4. Group Related Files**
+   - **Pages and components** should be grouped by feature/domain, not just by their type. For instance, the `profile` page should have its own components, services, and styles contained within a `profile` directory.
+   - Keep **service or API** logic separate in the `services` or `api` folder.
+
+### **5. Separation of Concerns**
+   - **UI/Components**: Keep components that handle visual aspects separate from the logic. Don't mix business logic with presentational logic.
+   - **State Management**: Use a central location for managing the state (either via `Context`, `Redux`, `Recoil`, etc.) to avoid unnecessary re-renders and state duplication.
+   - **Service Layer**: All interactions with external APIs (Firebase, etc.) should be handled through a service layer, separating concerns and making it easier to switch APIs in the future.
+
+### **6. Avoid Over-Optimization**
+   - Keep the folder structure **as simple as needed** for your current project scale. Don’t over-optimize before it’s necessary. Start simple and only refactor as the project grows.
+   - Avoid large numbers of **global files** (like global utils or styles) unless truly necessary.
+
+### **7. Use Feature-Specific Folders**
+   - For example, in the context of a **Tricycle Booking** application:
+     - All files related to booking, including form components, validation, API calls, and pages, should be contained within a `tricycle-booking` folder.
+     - This creates a clean separation of features, with minimal dependencies between unrelated sections of the app.
+
+### **8. Centralized Hooks Directory (Optional)**
+   - If you use hooks heavily, consider creating a `hooks` directory to group your custom hooks, making them easier to find and reuse.
+   
+   ```plaintext
+   src/
+   ├── hooks/
+   │   ├── useAuth.ts      # Custom hook for authentication logic
+   │   ├── useFetch.ts     # Custom hook for data fetching
+   ```
+
+### **9. Index Files for Exports**
+   - Use **index.ts** files to export components, utilities, or services. This creates a single point of entry and avoids importing from deep nested files.
+   
+   Example:
+   ```typescript
+   // src/components/Button/index.ts
+   export { default } from './Button';
+   
+   // src/features/auth/index.ts
+   export { default as Login } from './login';
+   export { default as Register } from './register';
+   ```
+
+### **10. Group by Business Logic**
+   - Separate logic from presentation. For example, **validation logic** and **API calls** for the booking form should be separated from the UI component itself.
+   - Create a **utils** or **services** folder for utility functions and data manipulation logic.
+
+### **11. Testing Folder**
+   - Keep a `tests` or `__tests__` directory where all unit and integration tests live, preferably next to the file they are testing.
+   - For large applications, consider setting up **test suites** for specific modules.
+
+Example:
+```
+src/
+├── features/
+│   ├── auth/
+│   │   ├── __tests__/      # Auth-related tests
+│   │   ├── login.test.ts
+│   │   └── login.tsx
+```
+
+---
+
+### **Key Takeaways:**
+- **Feature-based structure**: Group related files (UI, services, and logic) under feature folders for scalability and maintainability.
+- **Separation of Concerns**: Keep UI, logic, and state management separate for easier debugging and maintenance.
+- **Consistent Naming**: Use clear, consistent naming conventions that indicate the purpose of each file.
+- **Flexibility**: The structure should remain flexible enough to allow scaling and adding new features as the app grows.
+- **Modularization**: Ensure each module or feature is self-contained with minimal interdependencies.
