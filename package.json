@@ -10,9 +10,12 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^5.0.1",
+<<<<<<< HEAD
     "@radix-ui/react-accordion": "^1.2.3",
     "@radix-ui/react-avatar": "^1.1.3",
     "@radix-ui/react-checkbox": "^1.1.4",
+=======
+>>>>>>> a8828d845465fd17bec15a8c516848b7c441652b
     "@radix-ui/react-dialog": "^1.1.6",
     "@radix-ui/react-dropdown-menu": "^2.1.6",
     "@radix-ui/react-label": "^2.1.2",
@@ -25,7 +28,10 @@
     "@radix-ui/react-slot": "^1.1.2",
     "@radix-ui/react-switch": "^1.1.3",
     "@radix-ui/react-tabs": "^1.1.3",
+<<<<<<< HEAD
     "@radix-ui/react-toggle": "^1.1.2",
+=======
+>>>>>>> a8828d845465fd17bec15a8c516848b7c441652b
     "@radix-ui/react-tooltip": "^1.1.8",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",

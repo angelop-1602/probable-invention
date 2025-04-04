@@ -1,5 +1,6 @@
 "use client";
 
+<<<<<<< HEAD
 import { useState } from "react";
 import { useTheme } from "./theme-provider";
 import { ThemeToggle } from "./theme-toggle";

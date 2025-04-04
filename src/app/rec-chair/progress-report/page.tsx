@@ -1,3 +1,4 @@
+
 import { ChairTable } from "@/components/rec-chair/Table";
 
 export default function ProgressReport() {
@@ -10,4 +11,3 @@ export default function ProgressReport() {
     </>
   );
 }
-  
