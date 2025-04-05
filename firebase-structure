@@ -1,0 +1,215 @@
+Below is a suggested design for your Firebase database and Storage folder structure. This design groups data by process (Proponent submission, REC Chair review, Primary Reviewer feedback) and aims to ease retrieval and updates. Adjust names and field types as needed for your project.
+
+---
+
+### Firebase Firestore Database
+
+#### 1. Applications Collection
+
+Each document represents a single protocol review application.
+
+**Document ID:** _Auto-generated or use your Application Code (e.g., RECYYYYRC)_
+
+**Fields:**
+- **principalInvestigator:** string  
+  *Name of the lead researcher.*
+
+- **submissionDate:** timestamp  
+  *Date when the application was submitted.*
+
+- **researchTitle:** string  
+  *Title of the research project.*
+
+- **adviser:** string  
+  *Name of the adviser.*
+
+- **courseProgram:** string  
+  *Acronym of the course or program.*
+
+- **email:** string  
+  *Email address of the principal investigator.*
+
+- **applicationCode:** string  
+  *Generated code (e.g., RECYYYYRC) to track the application.*
+
+- **spupRecCode:** string  
+  *Assigned after initial review (format: SPUP_YYYY_NNNN_TR_FL).*
+
+- **status:** string  
+  *Current status of the application (e.g., OR, A, C, T).*
+
+- **funding:** string  
+  *Funding source code (R, I, A, D, O).*
+
+- **typeOfResearch:** string  
+  *Research type (EX for Experimental, SR for Social/Behavioral).*
+
+- **progress:** object  
+  *Tracks stages with dates and/or status. For example:*
+  - **SC:** timestamp  
+    *Submission Check date.*
+  - **IR:** timestamp  
+    *Initial Review date.*
+  - **RS:** { count: number, dates: [timestamp] }  
+    *Resubmission count and dates.*
+  - **AP:** timestamp  
+    *Approval date (Certificate of Approval issued).*
+  - **PR:** timestamp  
+    *Progress Report submission date.*
+  - **FR:** timestamp  
+    *Final Report submission date.*
+  - **AR:** timestamp  
+    *Archiving date.*
+
+- **documents:** array or subcollection reference  
+  *Holds metadata for each document submitted.*
+
+---
+
+#### 2. Documents Subcollection (under each Application)
+
+Each document represents an individual file attached to the application.
+
+**Document Fields:**
+- **docType:** string  
+  *Type of document (e.g., "Form 07A", "Form 07B", "Informed Consent Template", "Research Proposal").*
+
+- **fileName:** string  
+  *Original file name.*
+
+- **storagePath:** string  
+  *Full path in Firebase Storage.*
+
+- **uploadDate:** timestamp  
+  *When the file was uploaded.*
+
+- **status:** string  
+  *E.g., "submitted", "approved", "rejected".*
+
+- **comments:** string (optional)  
+  *Any review notes or feedback.*
+
+---
+
+#### 3. Reviews Subcollection (under each Application)
+
+Each review document tracks feedback from a Primary Reviewer or the REC Chair.
+
+**Document Fields:**
+- **reviewerId:** string  
+  *Unique identifier for the reviewer.*
+
+- **reviewerName:** string  
+  *Name of the reviewer.*
+
+- **assignedForm:** string  
+  *Form used (e.g., "Form 06A", "Form 06C").*
+
+- **reviewType:** string  
+  *Stage of review (Initial, Resubmission, Termination).*
+
+- **submittedDocuments:** array  
+  *List of document references or names reviewed.*
+
+- **decision:** string  
+  *Review outcome (e.g., "Approved", "Minor Modifications Required", "Major Modifications Required", "Disapproved").*
+
+- **reviewDate:** timestamp  
+  *Date when the review was completed.*
+
+- **comments:** string  
+  *Reviewer remarks or required corrections.*
+
+---
+
+#### 4. Notifications (Optional, either as a top-level collection or subcollection)
+
+Used for communication between the REC Chair and proponents.
+
+**Document Fields:**
+- **applicationId:** string  
+  *Reference to the Application document.*
+
+- **notificationType:** string  
+  *E.g., "Resubmission", "Approval", "Termination".*
+
+- **message:** string  
+  *Notification details.*
+
+- **createdDate:** timestamp  
+  *When the notification was sent.*
+
+---
+
+### Firebase Storage Folder Structure
+
+Organize files by application and stage to simplify retrieval.
+
+#### Root Folder: `/applications`
+
+- **Each Application Folder:**  
+  Use the Application Code (e.g., `REC2023ABC123`) as the folder name.  
+  **Structure:**
+  - `/applications/{applicationCode}/submission/`  
+    *For initial submission documents (e.g., Form 07A, Form 07B, Proposal, etc.).*
+  - `/applications/{applicationCode}/resubmission/`  
+    *For revised documents submitted after feedback.*
+  - `/applications/{applicationCode}/approval/`  
+    *For final approved documents, certificate of approval, etc.*
+  - `/applications/{applicationCode}/termination/` *(if applicable)*  
+    *For early termination documents and related forms.*
+  - `/applications/{applicationCode}/archived/`  
+    *For documents post-archiving.*
+
+#### Root Folder: `/reviews`
+
+- **Each Review Folder:**  
+  Group by Application Code.  
+  **Structure:**
+  - `/reviews/{applicationCode}/{reviewerId}/initial/`  
+    *For initial review files and forms.*
+  - `/reviews/{applicationCode}/{reviewerId}/resubmission/`  
+    *For files related to resubmission reviews.*
+  - `/reviews/{applicationCode}/{reviewerId}/termination/` *(if applicable)*  
+    *For termination review files.*
+
+---
+
+### Additional Considerations
+
+- **Timestamps:**  
+  Store creation and update timestamps for audit and tracking.
+
+- **Indexing:**  
+  Index key fields (e.g., submissionDate, status, spupRecCode) to support queries and sorting in the dashboard views.
+Below are additional considerations to keep your Firebase implementation robust, secure, and scalable:
+
+- **Data Normalization vs. Denormalization:**  
+  Decide between a normalized structure (to reduce redundancy) and denormalized structure (to simplify queries). This impacts how data is read and updated.
+
+- **Versioning of Documents:**  
+  Implement a versioning system for documents. Keep a history of changes to support rollback and track document evolution.
+
+- **Backup and Disaster Recovery:**  
+  Set up regular backups for both Firestore and Storage. This protects against data loss and supports disaster recovery.
+
+- **Offline Persistence and Synchronization:**  
+  Leverage Firebase's offline capabilities. Ensure the app can work offline and sync data once connectivity is restored.
+
+- **Indexing and Query Performance:**  
+  Create indexes for frequently queried fields (e.g., submissionDate, status, spupRecCode). This improves query speed and overall performance.
+
+- **Audit Logs and Activity Tracking:**  
+  Maintain logs for critical actions (submissions, reviews, updates). This helps with auditing and tracking any changes made over time.
+
+- **Scalability:**  
+  Plan for potential growth in data. Use Firestore’s partitioning and scaling features to ensure performance as the user base grows.
+
+- **Error Handling and Data Validation:**  
+  Build robust error handling at both the client and server levels. Validate data before writes to ensure consistency and integrity.
+
+- **Regulatory Compliance and Data Privacy:**  
+  Ensure your design adheres to any relevant regulations (e.g., GDPR). Store sensitive data securely and encrypt data where necessary.
+
+- **Monitoring and Analytics:**  
+  Use Firebase Analytics and performance monitoring tools. Track user activity and system performance to identify and address issues quickly.

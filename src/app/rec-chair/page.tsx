@@ -11,9 +11,6 @@ export default function RecChairDashboard() {
     <div>
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-2xl font-bold">REC Chair Dashboard</h1>
-        <Button variant="outline" onClick={signOut}>
-          Sign Out
-        </Button>
       </div>
 
       <Dashboard />

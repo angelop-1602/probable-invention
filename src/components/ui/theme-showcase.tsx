@@ -1,6 +1,4 @@
 "use client";
-
-<<<<<<< HEAD
 import { useState } from "react";
 import { useTheme } from "./theme-provider";
 import { ThemeToggle } from "./theme-toggle";
@@ -72,6 +70,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "./tabs";
 import { Textarea } from "./textarea";
 import { Toggle } from "./toggle";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./tooltip";
+import { FileUploader } from "./file-upload";
 
 export function ThemeShowcase() {
   const { colors } = useTheme();
@@ -619,9 +618,15 @@ export function ThemeShowcase() {
                 </div>
               </div>
             </section>
+            <FileUploader 
+  onFilesSelected={(files) => console.log(files)}
+  accept={{ 'application/*': ['.pdf'] }}
+/>
           </div>
         </TabsContent>
       </Tabs>
+
+
     </div>
   );
 } 

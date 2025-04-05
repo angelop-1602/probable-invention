@@ -1,5 +1,5 @@
 
-import { ChairTable } from "@/components/rec-chair/Table";
+import { ChairTable } from "@/components/rec-chair/shared/Table";
 
 export default function FinalReport() {
   return (
