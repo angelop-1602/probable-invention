@@ -1,15 +1,7 @@
 "use client";
 import { createContext, useContext, ReactNode } from 'react';
-import { User } from 'firebase/auth';
 import { useAuth } from '@/hooks/use-auth';
-
-type AuthContextType = {
-  user: User | null;
-  loading: boolean;
-  signInWithMicrosoft: () => Promise<any>;
-  signOut: () => Promise<void>;
-  isAuthenticated: boolean;
-};
+import { AuthContextType } from '@/types';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 

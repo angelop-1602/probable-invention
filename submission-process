@@ -1,0 +1,162 @@
+#### **1. Protocol Review Application Collection:**
+This collection stores all protocol submissions.
+
+- **Document ID**: Unique `applicationCode` (e.g., `REC2025RCABCDE`).
+  - **proponent**: Map
+    - `name`: string
+    - `email`: string
+    - `advisor`: string
+    - `courseProgram`: string
+    - `submissionDate`: timestamp
+  - **protocolDetails**: Map
+    - `researchTitle`: string
+    - `abstract`: string
+    - `curriculumVitae`: array of filenames (e.g., `CV_JohnDoe.pdf`)
+    - `questionnaires`: array of filenames (e.g., `Survey1.pdf`)
+    - `minutesOfProposalDefense`: string (file reference)
+    - `technicalReviewApproval`: string (file reference, if applicable)
+    - `otherDocuments`: array of filenames (optional)
+  - **reviewStage**: Map
+    - `initialReviewDate`: timestamp
+    - `decision`: string (e.g., `Approved`, `Minor Modifications Required`)
+    - `decisionJustification`: string
+    - `finalApprovalDate`: timestamp
+  - **applicationStatus**: string (e.g., `On-going review`, `Approved and on-going`)
+  - **funding**: string (e.g., `R` for researcher-funded)
+  - **researchType**: string (e.g., `EX` for experimental research)
+  - **reviewProgress**: Map
+    - `submissionCheck`: boolean
+    - `initialReview`: boolean
+    - `resubmission`: boolean
+    - `approved`: boolean
+    - `progressReport`: boolean
+    - `finalReport`: boolean
+    - `archived`: boolean
+  - **recCode**: string (SPUP REC Code once finalized by REC Chair)
+
+#### **2. Reviewer Feedback Collection:**
+This collection stores the feedback from reviewers for each submission.
+
+- **Document ID**: `applicationCode-reviewerCode` (e.g., `REC2025RCABCDE-XXXX-001`)
+  - **reviewerDetails**: Map
+    - `reviewerCode`: string
+    - `reviewerName`: string
+  - **assignedForm**: string (e.g., `Form 06A`)
+  - **reviewType**: string (e.g., `Initial`, `Resubmission`)
+  - **submittedDocuments**: array of filenames (e.g., `Protocol_v2.pdf`)
+  - **decision**: string (e.g., `Approved`, `Minor Modifications Required`)
+  - **decisionJustification**: string
+  - **reviewDate**: timestamp
+  - **formResponses**: Map (answers for each form question)
+  - **generalComments**: string (overall comments from reviewer)
+
+#### **3. Application Code Generator:**
+This system can generate unique `applicationCode` in the format `RECYYYYRC`, and assign a random 6-character string.
+
+- **Code Generation Logic**: 
+    - **Format**: `RECYYYYRC` where `YYYY` is the current year and `RC` is a random 6-character string.
+    - Save this code to the Firestore document when the application is submitted.
+
+#### **4. Future Reference Fields:**
+Once the protocol review process is complete, store the finalized SPUP REC Code and other related information:
+- **SPUP_REC_Code**: Automatically assigned when the REC Chair finalizes the review.
+- **progressTracking**: Store information on stages such as submission check, review, approval, resubmission, etc.
+
+---
+
+### **Frontend Component Structure:**
+
+Here’s a breakdown of components you can create for easy editing and organization in your frontend:
+
+#### **1. Application Form Component (For Proponent):**
+This component will allow the proponent to fill out the application. Each field will correspond to the Firestore fields mentioned above.
+
+- **Input Fields**:
+  - Principal Investigator (Name)
+  - Submission Date (Date Picker)
+  - Research Title (Text Field)
+  - Adviser (Text Field)
+  - Course/Program (Text Field)
+  - Email Address (Email Field)
+  
+  The documents will be uploaded via file inputs that correspond to the relevant Firestore document fields, such as `Form 07A`, `Form 07B`, etc.
+
+#### **2. Application Review Component (For REC Chair):**
+Once the proponent submits the application, the REC Chair will use this component to review the submission and provide feedback.
+
+- **Fields**:
+  - **Decision** (Dropdown with options: Approved, Minor Modifications Required, Major Modifications Required, Disapproved)
+  - **Justification** (Text area for justifying the decision)
+  - **Form Responses** (Dynamic form to display responses to specific questions)
+  
+  This component will fetch and display the application details from Firestore and allow the REC Chair to edit the decision and justification.
+
+#### **3. Progress Tracker Component:**
+This component will track the progress of each protocol review. It should display stages like "Submission Check," "Initial Review," "Approved," etc.
+
+- **Progress Indicator** (Visual representation of the stages)
+  - Display each stage's current status (e.g., Approved, Pending, In Progress)
+
+#### **4. Modal for Application Code Display:**
+Once the proponent submits the form, display a modal with their **Application Code** to track their submission.
+
+---
+
+### **Firebase Structure (Firestore) Example:**
+
+```json
+{
+  "protocolReviewApplications": {
+    "REC2025RCABCDE": {
+      "proponent": {
+        "name": "Dr. John Doe",
+        "email": "john.doe@email.com",
+        "advisor": "Prof. Jane Smith",
+        "courseProgram": "BSCS",
+        "submissionDate": "2025-04-06T10:00:00Z"
+      },
+      "protocolDetails": {
+        "researchTitle": "Study on AI Ethics",
+        "abstract": "This study explores ethical implications of AI technologies.",
+        "curriculumVitae": ["CV_JohnDoe.pdf"],
+        "questionnaires": ["Survey1.pdf"],
+        "minutesOfProposalDefense": "Minutes.pdf",
+        "technicalReviewApproval": "TechnicalReview.pdf",
+        "otherDocuments": []
+      },
+      "reviewStage": {
+        "initialReviewDate": "2025-04-07T12:00:00Z",
+        "decision": "Approved",
+        "decisionJustification": "All required changes were made."
+      },
+      "applicationStatus": "On-going review",
+      "funding": "R",
+      "researchType": "EX",
+      "reviewProgress": {
+        "submissionCheck": true,
+        "initialReview": true,
+        "approved": true
+      },
+      "recCode": "SPUP_2025_0001_TR_FL"
+    }
+  },
+  "reviewerFeedback": {
+    "REC2025RCABCDE-XXXX-001": {
+      "reviewerDetails": {
+        "reviewerCode": "XXXX-001",
+        "reviewerName": "Dr. Lisa Green"
+      },
+      "assignedForm": "Form 06A",
+      "reviewType": "Initial",
+      "submittedDocuments": ["Protocol_v2.pdf"],
+      "decision": "Approved",
+      "decisionJustification": "The protocol meets the required ethical standards.",
+      "reviewDate": "2025-04-08T15:00:00Z",
+      "formResponses": {
+        "1": {"answer": "Yes", "comment": "The study has a clear and significant objective."},
+        "2.1": {"answer": "No", "comment": "Some objectives need more clarity."}
+      },
+      "generalComments": "Overall, the study is well planned and requires minor revisions."
+    }
+  }
+}

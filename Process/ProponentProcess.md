@@ -6,6 +6,87 @@
 - **Info Section**
 - **Footer Section**
 
+### Full Application Process for Proponent Landing Page  
+
+**1. Submit Protocol Review Application**  
+- Fill out **Protocol Review Application Information**:  
+  - Principal Investigator, Submission Date, Research Title, Adviser, Course/Program (acronym), Email Address.  
+- Upload **required documents**:  
+  - Form 07A, 07B, 07C, Research Proposal, Minutes of Proposal Defense, Abstract, CVs, Questionnaires, etc.  
+- **Outcome**:  
+  - Receive an **Application Code** (`RECYYYYRC`) to track your submission. Save this code.  
+
+---
+
+**2. REC Chair Completeness Check (SC)**  
+- The REC Chair verifies if all documents are complete.  
+  - If **incomplete**: You’ll be notified to submit missing documents.  
+  - If **complete**: The REC Chair assigns the **SPUP REC Code** (`SPUP_YYYY_NNNN_TR_FL`), visible in your tracker.  
+
+---
+
+**3. Initial Review by Primary Reviewers (IR)**  
+- Primary reviewers assess your submission using assigned forms (e.g., Form 06A, 06C).  
+- **Possible Decisions** (communicated via REC Chair):  
+  - **Approved**: Proceed to Progress Reports.  
+  - **Minor/Major Modifications Required**: Revise and resubmit.  
+  - **Disapproved**: Application halted.  
+
+---
+
+**4. Resubmission (RS)** *(if needed)*  
+- Submit revised documents and a resubmission form (Form 08A) via the tracker.  
+- Reviewers reassess until approval.  
+- Track **resubmission count** and status updates in your application tracker.  
+
+---
+
+**5. Approval (AP)**  
+- Receive a **Certificate of Approval** and:  
+  - **Progress Report Form** (Form 09B): Submit periodic updates as instructed.  
+  - **Final Report Form** (Form 14A): Submit after study completion.  
+
+---
+
+**6. Progress Reports (PR)**  
+- Submit periodic updates to the REC Chair using Form 09B.  
+- Track submission dates and feedback in the tracker.  
+
+---
+
+**7. Final Report (FR)**  
+- Submit Form 14A after completing the study.  
+- Include final outcomes, participant data, and ethical compliance details.  
+
+---
+
+**8. Archiving (AR)**  
+- The REC Chair archives your application after approving the Final Report.  
+- Access archived documents (e.g., original submission, approvals) via the tracker.  
+
+---
+
+### **Recommendations for Proponent Landing Page**  
+1. **Visual Progress Tracker**:  
+   - Use a color-coded bar showing stages (SC → IR → RS → AP → PR → FR → AR).  
+   - Include status acronyms (e.g., "IR: Initial Review") with tooltips for clarity.  
+
+2. **Application Code Input Box**:  
+   - Place a prominent "Track Your Application" section at the top with a field to enter the Application Code.  
+
+3. **Document Library**:  
+   - Provide downloadable templates (e.g., Form 07A, 07B) and submission guidelines.  
+
+4. **FAQs/Support**:  
+   - Add a section addressing common queries (e.g., "How to resubmit?").  
+   - Include contact details for REC support.  
+
+5. **Notifications**:  
+   - Enable email/SMS alerts for status updates (e.g., "Your application is now in Initial Review").  
+
+6. **Mobile-Friendly Design**:  
+   - Ensure forms and trackers are accessible on mobile devices.  
+
 ---
 
 **2. Submission of Protocol Review Application**

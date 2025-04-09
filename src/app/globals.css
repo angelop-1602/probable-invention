@@ -3,6 +3,11 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
+/* Custom font styling for Old English Text MT with fallbacks */
+.old-english {
+  font-family: 'Old English Text MT', 'Blackletter', 'Goudy Old Style', 'Times New Roman', serif;
+}
+
 @custom-variant dark (&:is(.dark *));
 
 :root {

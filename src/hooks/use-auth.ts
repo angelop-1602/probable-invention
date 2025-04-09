@@ -10,8 +10,9 @@ import {
 } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { useRouter } from 'next/navigation';
+import { UseAuthResult } from '@/types';
 
-export function useAuth() {
+export function useAuth(): UseAuthResult {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();

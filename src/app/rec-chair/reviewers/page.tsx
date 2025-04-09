@@ -1,97 +1,84 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { collection, getDocs, DocumentData } from "firebase/firestore";
-import { db } from "@/lib/firebase";
 import { ChairTable } from "@/components/rec-chair/shared/Table";
 import { AddReviewerCard } from "@/components/rec-chair/reviewers/AddReviewerCard";
-
-type Reviewer = {
-  id?: string;
-  code: string;
-  name: string;
-  isActive: boolean;
-  createdAt: any;
-  updatedAt: any;
-}
+import { fetchReviewers, Reviewer, prefetchReviewersData } from "@/lib/reviewers";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 
 export default function Reviewers() {
   const [reviewers, setReviewers] = useState<Reviewer[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [showActiveOnly, setShowActiveOnly] = useState(true);
 
   // Function to trigger a refresh of the data
   const refreshData = useCallback(() => {
     setRefreshTrigger(prev => prev + 1);
   }, []);
 
-  // Extract number from reviewer code for sorting
-  const extractNumber = (code: string): number => {
-    const match = code.match(/(\d+)/);
-    return match ? parseInt(match[0], 10) : 999; // Default to a high number if no match
-  };
-
-  // Sort reviewers by the numeric part of their code
-  const sortReviewers = (reviewersData: Reviewer[]): Reviewer[] => {
-    return [...reviewersData].sort((a, b) => {
-      return extractNumber(a.code) - extractNumber(b.code);
-    });
-  };
-
+  // Prefetch reviewers data for future navigations
   useEffect(() => {
-    const fetchReviewers = async () => {
+    prefetchReviewersData();
+  }, []);
+
+  // Load reviewers data (from cache if available)
+  useEffect(() => {
+    const loadReviewers = async () => {
       setLoading(true);
       try {
-        const reviewersCollection = collection(db, "reviewers");
-        const reviewersSnapshot = await getDocs(reviewersCollection);
-        const reviewersData = reviewersSnapshot.docs.map(doc => {
-          const data = doc.data() as DocumentData;
-          return {
-            id: doc.id,
-            code: data.code || "",
-            name: data.name || "",
-            isActive: data.isActive || false,
-            createdAt: data.createdAt || null,
-            updatedAt: data.updatedAt || null
-          } as Reviewer;
-        });
-        
-        // Sort reviewers by code number
-        setReviewers(sortReviewers(reviewersData));
+        // If refreshTrigger was incremented, force a fresh fetch
+        const forceRefresh = refreshTrigger > 0;
+        const data = await fetchReviewers(forceRefresh, showActiveOnly);
+        setReviewers(data);
       } catch (error) {
-        console.error("Error fetching reviewers:", error);
+        console.error("Error loading reviewers:", error);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchReviewers();
-  }, [refreshTrigger]); // Re-fetch when refreshTrigger changes
+    loadReviewers();
+  }, [refreshTrigger, showActiveOnly]);
 
   return (
     <div className="space-y-6">
       {/* Header with Add Reviewer button */}
       <div className="flex justify-between items-center mb-4">
         <div>
-          <h1 className="text-3xl font-bold text-primary-600">Primary Reviewers</h1>
+          <h1 className="text-3xl font-bold text-primary-600 dark:text-primary-400">Primary Reviewers</h1>
           <p className="text-muted-foreground mt-1">
-            Manage primary reviewers for protocol evaluation
+            Manage Primary Reviewers
           </p>
         </div>
         <AddReviewerCard onReviewerAdded={refreshData} />
       </div>
       
+      {/* Filter Switch */}
+      <div className="flex items-center space-x-2">
+        <Switch
+          id="active-filter"
+          checked={showActiveOnly}
+          onCheckedChange={setShowActiveOnly}
+        />
+        <Label htmlFor="active-filter">
+          {showActiveOnly ? "Showing active reviewers only" : "Showing all reviewers"}
+        </Label>
+      </div>
+      
       {/* Reviewers Table */}
       {loading ? (
         <div className="flex justify-center items-center h-48">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-600"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
         </div>
       ) : (
         <ChairTable 
           tableType="reviewers"
           data={reviewers}
-          caption="Complete list of primary reviewers"
+          caption={`${showActiveOnly ? 'Active' : 'Complete list of'} primary reviewers`}
           hidePagination={true}
+          onRefresh={refreshData}
         />
       )}
     </div>

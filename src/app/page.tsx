@@ -1,9 +1,10 @@
-import { ThemeShowcase } from "@/components/ui/theme-showcase";
+import { ProponentLandingPage } from "@/components/proponent/LandingPage";
 
-export default function Home() {
-  return (
-    <div className="min-h-screen">
-      <ThemeShowcase />
-    </div>
-  );
-}
+export const metadata = {
+  title: "REC Protocol Review System | Proponent",
+  description: "Protocol review system for proponents to submit and track research applications",
+};
+
+export default function ProponentPage() {
+  return <ProponentLandingPage />;
+} 

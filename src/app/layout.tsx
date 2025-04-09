@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { AuthProvider } from "@/lib/auth-context";
 import { ThemeProvider } from "@/components/ui/theme-provider";
+import DataPrefetcher from "@/components/shared/DataPrefetcher";
+import { AlertProvider } from "@/components/shared/Alerts";
 
 export const metadata: Metadata = {
   title: "SPUP Ethics Review Committee",
@@ -18,7 +20,11 @@ export default function RootLayout({
       <body suppressHydrationWarning>
         <ThemeProvider>
           <AuthProvider>
-            {children}
+            {/* Prefetch data for faster navigation */}
+            <DataPrefetcher />
+            <AlertProvider position="bottom-right">
+              {children}
+            </AlertProvider>
           </AuthProvider>
         </ThemeProvider>
       </body>

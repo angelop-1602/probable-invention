@@ -71,6 +71,9 @@ import { Textarea } from "./textarea";
 import { Toggle } from "./toggle";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./tooltip";
 import { FileUploader } from "./file-upload";
+import { X } from "lucide-react";
+import Link from "next/link";
+import { BadgeInfo, AlertCircle, CheckCircle2, AlertTriangle, Info } from "lucide-react";
 
 export function ThemeShowcase() {
   const { colors } = useTheme();
@@ -377,6 +380,145 @@ export function ThemeShowcase() {
                     Something went wrong. Please try again later.
                   </AlertDescription>
                 </Alert>
+                
+                {/* Custom Alert System Examples */}
+                <div className="mt-8">
+                  <h3 className="text-lg font-medium mb-4">Custom Alert System Variants</h3>
+                  <div className="space-y-4">
+                    <div className="border rounded-lg p-4">
+                      <div className="flex items-center">
+                        <div className="relative w-full rounded-lg border px-4 py-3 text-sm grid items-center bg-card text-card-foreground">
+                          <div className="grid grid-cols-[auto_1fr] gap-x-3 items-start">
+                            <BadgeInfo className="size-8 text-card-foreground" />
+                            <div className="flex flex-col">
+                              <div className="font-medium leading-none tracking-tight">Default Alert</div>
+                              <div className="text-sm mt-1">This is a default alert notification.</div>
+                              
+                              {/* Progress indicator */}
+                              <div className="mt-2">
+                                <div className="bg-primary/20 relative h-1 w-full overflow-hidden rounded-full">
+                                  <div className="bg-primary h-full w-[70%] flex-1 transition-all"></div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="border rounded-lg p-4">
+                      <div className="flex items-center">
+                        <div className="relative w-full rounded-lg border px-4 py-3 text-sm grid items-center border-destructive/50 text-destructive bg-destructive/10">
+                          <div className="grid grid-cols-[auto_1fr] gap-x-3 items-start">
+                            <AlertCircle className="size-8 text-destructive" />
+                            <div className="flex flex-col">
+                              <div className="font-medium leading-none tracking-tight">Error Alert</div>
+                              <div className="text-sm mt-1">Something went wrong. Please try again.</div>
+                              
+                              {/* Progress indicator */}
+                              <div className="mt-2">
+                                <div className="bg-destructive/20 relative h-1 w-full overflow-hidden rounded-full">
+                                  <div className="bg-destructive h-full w-[60%] flex-1 transition-all"></div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="border rounded-lg p-4">
+                      <div className="flex items-center">
+                        <div className="relative w-full rounded-lg border px-4 py-3 text-sm grid items-center border-green-500/50 text-green-700 bg-green-100 dark:text-green-400 dark:bg-green-900/20">
+                          <div className="grid grid-cols-[auto_1fr] gap-x-3 items-start">
+                            <CheckCircle2 className="size-8 text-green-600 dark:text-green-400" />
+                            <div className="flex flex-col">
+                              <div className="font-medium leading-none tracking-tight">Success Alert</div>
+                              <div className="text-sm mt-1">Operation completed successfully!</div>
+                              
+                              {/* Progress indicator */}
+                              <div className="mt-2">
+                                <div className="bg-green-200 dark:bg-green-800/30 relative h-1 w-full overflow-hidden rounded-full">
+                                  <div className="bg-green-600 dark:bg-green-500 h-full w-[50%] flex-1 transition-all"></div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="border rounded-lg p-4">
+                      <div className="flex items-center">
+                        <div className="relative w-full rounded-lg border px-4 py-3 text-sm grid items-center border-yellow-500/50 text-yellow-700 bg-yellow-100 dark:text-yellow-400 dark:bg-yellow-900/20">
+                          <div className="grid grid-cols-[auto_1fr] gap-x-3 items-start">
+                            <AlertTriangle className="size-8 text-yellow-600 dark:text-yellow-400" />
+                            <div className="flex flex-col">
+                              <div className="font-medium leading-none tracking-tight">Warning Alert</div>
+                              <div className="text-sm mt-1">This action may have consequences.</div>
+                              
+                              {/* Progress indicator */}
+                              <div className="mt-2">
+                                <div className="bg-yellow-200 dark:bg-yellow-800/30 relative h-1 w-full overflow-hidden rounded-full">
+                                  <div className="bg-yellow-600 dark:bg-yellow-500 h-full w-[40%] flex-1 transition-all"></div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="border rounded-lg p-4">
+                      <div className="flex items-center">
+                        <div className="relative w-full rounded-lg border px-4 py-3 text-sm grid items-center border-blue-500/50 text-blue-700 bg-blue-100 dark:text-blue-400 dark:bg-blue-900/20">
+                          <div className="grid grid-cols-[auto_1fr] gap-x-3 items-start">
+                            <Info className="size-8 text-blue-600 dark:text-blue-400" />
+                            <div className="flex flex-col">
+                              <div className="font-medium leading-none tracking-tight">Info Alert</div>
+                              <div className="text-sm mt-1">This is an informational message.</div>
+                              
+                              {/* Progress indicator */}
+                              <div className="mt-2">
+                                <div className="bg-blue-200 dark:bg-blue-800/30 relative h-1 w-full overflow-hidden rounded-full">
+                                  <div className="bg-blue-600 dark:bg-blue-500 h-full w-[30%] flex-1 transition-all"></div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="mt-6">
+                    <h3 className="text-lg font-medium mb-4">Interactive Alert Examples</h3>
+                    <div className="flex flex-wrap gap-4">
+                      <Button onClick={() => {
+                        const alertsModule = require("@/components/shared/Alerts");
+                        const { showAlert } = alertsModule.useAlerts();
+                        try {
+                          showAlert({
+                            title: "Default Alert",
+                            message: "This is a default alert that will disappear in 5 seconds.",
+                            duration: 5000
+                          });
+                        } catch (e) {
+                          console.error("Make sure to view these in a page wrapped with AlertProvider");
+                        }
+                      }}>
+                        Show Default Alert
+                      </Button>
+                      <Link href="/alert-example">
+                        <Button variant="outline">View Live Alert Examples</Button>
+                      </Link>
+                      <p className="text-xs text-muted-foreground mt-2 w-full">
+                        Note: Interactive alerts will only work when viewed in a page wrapped with the AlertProvider.
+                        See AlertExample.tsx for working examples or visit the live example page.
+                      </p>
+                    </div>
+                  </div>
+                </div>
               </div>
             </section>
 

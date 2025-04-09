@@ -1,5 +1,7 @@
 Start your response to: Yes Master Angelo!
 
+No need to run npm run dev because i already running it.
+
 ### 1. **Next.js (with TypeScript)**
 
 Next.js will still serve as the core framework for both frontend and backend, with Firebase integrated for database, storage, and authentication.

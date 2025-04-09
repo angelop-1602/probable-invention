@@ -1,5 +1,6 @@
 "use client";
 
+import * as React from "react";
 import { createContext, useContext, useEffect, useState } from "react";
 import { themeColors } from "@/lib/theme-utils";
 
@@ -26,17 +27,40 @@ export function ThemeProvider({
   children,
   defaultTheme = "light",
 }: ThemeProviderProps) {
+  const [mounted, setMounted] = useState(false);
   const [theme, setTheme] = useState(defaultTheme);
 
+  // Only run on client side
   useEffect(() => {
+    setMounted(true);
+    // Check for system preference or stored preference
+    const storedTheme = localStorage.getItem("theme");
+    if (storedTheme) {
+      setTheme(storedTheme);
+    } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      setTheme("dark");
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!mounted) return;
+    
     const root = window.document.documentElement;
     root.classList.remove("light", "dark");
     root.classList.add(theme);
-  }, [theme]);
+    
+    // Store theme preference
+    localStorage.setItem("theme", theme);
+  }, [theme, mounted]);
 
+  // Force the value to match the default theme for the first render
   const value = {
-    theme,
-    setTheme,
+    theme: mounted ? theme : defaultTheme,
+    setTheme: (newTheme: string) => {
+      if (mounted) {
+        setTheme(newTheme);
+      }
+    },
     colors: themeColors,
   };
 

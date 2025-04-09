@@ -14,6 +14,14 @@ import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
 import { PlusCircleIcon } from "lucide-react";
 import {
     addDoc,
@@ -24,15 +32,40 @@ import {
     orderBy
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+import { invalidateReviewersCache } from "@/lib/reviewers";
 
 interface AddReviewerCardProps {
     onReviewerAdded?: () => void;
 }
 
+const SPECIALIZATIONS = [
+    "Natural Science",
+    "Medical Science",
+    "Political Science",
+    "Social Science",
+    "Public Health",
+    "Data Science",
+    "Biosystems Engineering",
+    "Languages",
+    "Information Technologies"
+];
+
+const DEPARTMENTS = [
+    "SASTE",
+    "SBAHM",
+    "SITE",
+    "SNAHS",
+    "BEU",
+    "HR"
+];
+
 export function AddReviewerCard({ onReviewerAdded }: AddReviewerCardProps) {
     const [open, setOpen] = useState(false);
     const [name, setName] = useState("");
     const [code, setCode] = useState("");
+    const [specialization, setSpecialization] = useState("");
+    const [department, setDepartment] = useState("");
+    const [isAffiliated, setIsAffiliated] = useState(true);
     const [error, setError] = useState("");
     const [success, setSuccess] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -149,9 +182,22 @@ export function AddReviewerCard({ onReviewerAdded }: AddReviewerCardProps) {
         return `${prefix}${nameInitials}-${formattedNumber}`;
     };
 
+    // Handle department change when affiliation changes
+    const handleAffiliatedChange = (value: boolean) => {
+        setIsAffiliated(value);
+        if (!value) {
+            setDepartment("None");
+        } else if (department === "None") {
+            setDepartment("");
+        }
+    };
+
     const resetForm = () => {
         setName("");
         setCode("");
+        setSpecialization("");
+        setDepartment("");
+        setIsAffiliated(true);
         setError("");
         setSuccess("");
     };
@@ -181,10 +227,15 @@ export function AddReviewerCard({ onReviewerAdded }: AddReviewerCardProps) {
             await addDoc(collection(db, "reviewers"), {
                 name: name.trim(),
                 code: code.trim(),
+                specialization: specialization,
+                department: isAffiliated ? department : "None",
                 isActive: true,
                 createdAt: serverTimestamp(),
                 updatedAt: serverTimestamp()
             });
+
+            // Invalidate the reviewers cache so fresh data will be fetched
+            invalidateReviewersCache();
 
             // Show success message
             setSuccess("Reviewer added successfully!");
@@ -235,7 +286,7 @@ export function AddReviewerCard({ onReviewerAdded }: AddReviewerCardProps) {
                 )}
 
                 {success && (
-                    <Alert className="mb-4 bg-green-50 border-green-200 text-green-800">
+                    <Alert className="mb-4 bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800 text-green-800 dark:text-green-300">
                         <AlertTitle>Success</AlertTitle>
                         <AlertDescription>{success}</AlertDescription>
                     </Alert>
@@ -244,41 +295,92 @@ export function AddReviewerCard({ onReviewerAdded }: AddReviewerCardProps) {
                 <form onSubmit={handleAddReviewer} className="space-y-4">
                     <div className="grid grid-cols-1 gap-4">
                         <div className="space-y-2">
-                            <Label htmlFor="reviewer-name">Reviewer Name (with Title)</Label>
+                            <Label htmlFor="name">Reviewer Name</Label>
                             <Input
-                                id="reviewer-name"
+                                id="name"
                                 value={name}
                                 onChange={handleNameChange}
-                                placeholder="Dr. John Doe"
+                                placeholder="Dr. John Smith"
+                                required
                             />
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="reviewer-code">Reviewer Code</Label>
-                            <p className="text-xs text-muted-foreground">
-                                Auto-generated Code
+                            <p className="text-sm text-muted-foreground">
+                                Include title (Dr., Mr., Ms., etc.) and full name
                             </p>
-                            <Input
-                                id="reviewer-code"
-                                value={code}
-                                readOnly
-                                className="bg-muted/50"
-                            />
-
                         </div>
+
+                        <div className="space-y-2">
+                            <Label htmlFor="code">Reviewer Code</Label>
+                            <Input
+                                id="code"
+                                value={code}
+                                onChange={(e) => setCode(e.target.value)}
+                                placeholder="Code will be generated automatically"
+                                disabled
+                            />
+                            <p className="text-sm text-muted-foreground">
+                                The code is generated automatically based on the name
+                            </p>
+                        </div>
+
+                        <div className="space-y-2">
+                            <Label htmlFor="specialization">Specialization</Label>
+                            <Select 
+                                value={specialization} 
+                                onValueChange={setSpecialization}
+                            >
+                                <SelectTrigger id="specialization">
+                                    <SelectValue placeholder="Select specialization" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {SPECIALIZATIONS.map((spec) => (
+                                        <SelectItem key={spec} value={spec}>
+                                            {spec}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+
+                        <div className="space-y-2">
+                            <Label htmlFor="affiliation">Affiliation</Label>
+                            <div className="flex items-center space-x-2">
+                                <Switch 
+                                    id="affiliation"
+                                    checked={isAffiliated}
+                                    onCheckedChange={handleAffiliatedChange}
+                                />
+                                <span>{isAffiliated ? "Affiliated" : "Unaffiliated"}</span>
+                            </div>
+                        </div>
+
+                        {isAffiliated && (
+                            <div className="space-y-2">
+                                <Label htmlFor="department">Department</Label>
+                                <Select 
+                                    value={department} 
+                                    onValueChange={setDepartment}
+                                    disabled={!isAffiliated}
+                                >
+                                    <SelectTrigger id="department">
+                                        <SelectValue placeholder="Select department" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {DEPARTMENTS.map((dept) => (
+                                            <SelectItem key={dept} value={dept}>
+                                                {dept}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        )}
                     </div>
 
-                    <DialogFooter className="sm:justify-end">
-                        <Button
-                            type="button"
-                            variant="outline"
-                            onClick={() => setOpen(false)}
-                            disabled={isSubmitting}
-                        >
-                            Cancel
-                        </Button>
+                    <DialogFooter>
                         <Button
                             type="submit"
-                            disabled={isSubmitting || !code}
+                            disabled={isSubmitting}
+                            className="w-full"
                         >
                             {isSubmitting ? "Adding..." : "Add Reviewer"}
                         </Button>
