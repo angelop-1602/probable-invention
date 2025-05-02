@@ -174,6 +174,25 @@ function ApplicationDocuments({ onDocumentsChange, isSubmitting }: ApplicationDo
   const handleFileChange = (key: string, files: File[]) => {
     const newDocuments = { ...documents, [key]: files.length > 0 ? files : null };
     setDocuments(newDocuments);
+    
+    // Store the document title for use as displayTitle
+    // For standard documents use the title from documentInfo
+    if (Object.keys(documentInfo).includes(key as keyof BaseDocumentFile)) {
+      const title = documentInfo[key as keyof BaseDocumentFile].title;
+      // Store this title in localStorage so it can be retrieved during upload
+      try {
+        const existingTitlesStr = localStorage.getItem('documentTitles') || '{}';
+        const existingTitles = JSON.parse(existingTitlesStr);
+        localStorage.setItem('documentTitles', JSON.stringify({
+          ...existingTitles,
+          [key]: title
+        }));
+      } catch (error) {
+        console.error("Error saving document title to localStorage:", error);
+      }
+    }
+    
+    // Pass documents and metadata to parent component
     onDocumentsChange(newDocuments);
     
     // Update status
@@ -191,17 +210,49 @@ function ApplicationDocuments({ onDocumentsChange, isSubmitting }: ApplicationDo
     // Add to custom documents list
     setCustomDocuments([...customDocuments, docKey]);
     
+    // Create document info object with the correct type
+    const docInfo: DocumentInfo = {
+      title: newDocumentTitle,
+      description: newDocumentDescription || "Additional document",
+      acceptTypes: { 'application/pdf': ['.pdf'] },
+      multiple: false,
+      category: 'additional',
+    };
+    
     // Add info for the new document
     setCustomDocumentInfo({
       ...customDocumentInfo,
-      [docKey]: {
-        title: newDocumentTitle,
-        description: newDocumentDescription || "Additional document",
-        acceptTypes: { 'application/pdf': ['.pdf'] },
-        multiple: false,
-        category: 'additional',
-      }
+      [docKey]: docInfo
     });
+    
+    // Store custom document info in localStorage for retrieval during processing
+    try {
+      // First try to get existing data
+      const existingInfoString = localStorage.getItem('customDocumentInfo');
+      const existingInfo = existingInfoString ? JSON.parse(existingInfoString) : {};
+      
+      // Add the new document info
+      const updatedInfo = {
+        ...existingInfo,
+        [docKey]: {
+          title: newDocumentTitle,
+          description: newDocumentDescription || "Additional document"
+        }
+      };
+      
+      // Save back to localStorage
+      localStorage.setItem('customDocumentInfo', JSON.stringify(updatedInfo));
+      
+      // Also save the title for the displayTitle
+      const existingTitlesStr = localStorage.getItem('documentTitles') || '{}';
+      const existingTitles = JSON.parse(existingTitlesStr);
+      localStorage.setItem('documentTitles', JSON.stringify({
+        ...existingTitles,
+        [docKey]: newDocumentTitle
+      }));
+    } catch (error) {
+      console.error("Error saving custom document info to localStorage:", error);
+    }
     
     // Initialize status and document for this new key
     setStatus({
@@ -327,7 +378,7 @@ function ApplicationDocuments({ onDocumentsChange, isSubmitting }: ApplicationDo
       <CardHeader>
         <CardTitle>Protocol Review Application Documents</CardTitle>
         <CardDescription>
-          Upload all necessary documents for your protocol submission
+          Upload documents for your protocol submission. Essential documents are no longer required fields.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -338,6 +389,7 @@ function ApplicationDocuments({ onDocumentsChange, isSubmitting }: ApplicationDo
           </TabsList>
           
           <TabsContent value="essential" className="mt-0">
+
             <div className="grid gap-4 md:grid-cols-2">
               {Object.keys(documentInfo)
                 .filter(key => documentInfo[key as keyof BaseDocumentFile].category === 'essential')
@@ -424,4 +476,4 @@ function ApplicationDocuments({ onDocumentsChange, isSubmitting }: ApplicationDo
   );
 }
 
-export { ApplicationDocuments };
+export default ApplicationDocuments;

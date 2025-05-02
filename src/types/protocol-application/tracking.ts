@@ -21,6 +21,13 @@ export interface Document {
   downloadLink: string;
   requestReason?: string; // Reason for document revision/additional request
   resubmissionVersion?: number; // Which resubmission this document version belongs to
+  fileType?: string; // MIME type of the document
+  fileName?: string; // Original filename of the document
+  documentType?: string; // Type of document (e.g., "submission", "resubmission")
+  documentId?: string; // ID of the document in Firestore
+  version?: string; // Version of the document (e.g., "v1", "v1650489321")
+  storagePath?: string; // Path to the file in Firebase Storage
+  displayName?: string; // User-friendly display name
 }
 
 /**

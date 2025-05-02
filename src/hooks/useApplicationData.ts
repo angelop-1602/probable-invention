@@ -6,12 +6,14 @@ import {
   getApplicationsByEmail, 
   trackApplicationStatus,
   checkForDuplicateSubmission,
-  cleanupAllCaches
-} from '@/lib/enhanced-submission-service';
-
-import {
+  cleanupAllCaches,
   ApplicationFormData,
   DocumentFiles,
+  DuplicateCheckResult,
+  SubmissionResult
+} from '@/lib/application-service';
+
+import {
   HookApplicationStatus,
   UseSubmitApplicationResult,
   UseApplicationStatusResult,

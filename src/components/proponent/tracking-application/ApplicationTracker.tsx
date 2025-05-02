@@ -12,6 +12,10 @@ import {
 import { Input } from "@/components/ui/input";
 import { AlertCircle, Upload, Download } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useToast } from "@/components/ui/use-toast";
+import { doc, updateDoc, getDoc } from "firebase/firestore";
+import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from "firebase/storage";
+import { db } from "@/lib/firebase";
 
 // Import our optimized hooks
 import { useApplicationStatus, useApplicationDocuments } from "@/hooks/useApplicationData";
@@ -27,12 +31,9 @@ import { HookApplicationStatus } from "@/types/protocol-application/hooks";
 // We'll create these components next
 import { ProgressTracker } from "./ProgressTracker";
 import { ApplicationDetails } from "./ApplicationDetails";
-import { DocumentList } from "./DocumentList";
+import DocumentList from "./DocumentList";
 import { ApplicationProgressTabs } from "./ApplicationProgressTabs";
 import { TrackNotes } from "./TrackNotes";
-
-// Add this import at the top with other imports
-import { ApplicationDocuments } from "@/components/proponent/submission-application/ApplicationDocuments";
 
 interface ApplicationTrackerProps {
   applicationCode?: string;
@@ -40,6 +41,7 @@ interface ApplicationTrackerProps {
 }
 
 export const ApplicationTracker = ({ applicationCode, userEmail }: ApplicationTrackerProps) => {
+  const { toast } = useToast();
   // State for the application data
   const [application, setApplication] = useState<Application | null>(null);
 
@@ -68,29 +70,49 @@ export const ApplicationTracker = ({ applicationCode, userEmail }: ApplicationTr
     // If we have real application data from our cached hooks, use it
     if (applicationData && !statusLoading && !docsLoading) {
       // Prepare the mapped documents
-      const mappedDocuments: Document[] = Array.from(documents.entries()).map(([key, blob]) => {
-        // Extract the file path and find corresponding metadata in applicationData
-        const fileName = key.split('/').pop() || key;
-        
-        // Try to find metadata with displayName for this document
-        const documentMetadata = applicationData.documents?.find((doc: any) => 
-          doc.fileName === fileName || doc.storagePath?.includes(fileName)
-        );
-        
-        // Use the displayName if available, otherwise format the filename for better readability
-        const displayName = documentMetadata?.displayName || 
-          formatDocumentName(fileName);
-        
-        return {
-          name: displayName, // Use the display name instead of the filename
-          originalName: fileName, // Keep the original filename for reference
-          status: "Submitted" as DocumentStatus,
-          downloadLink: getDocumentURL(key) || "",
-          // Add optional properties if needed
-          requestReason: undefined,
-          resubmissionVersion: undefined
-        };
-      });
+      const mappedDocuments: Document[] = [];
+      
+      // Include documents from applicationData.documents
+      if (applicationData.documents && applicationData.documents.length > 0) {
+        applicationData.documents.forEach((doc: any) => {
+          mappedDocuments.push({
+            name: doc.displayName || doc.name || formatDocumentName(doc.fileName || ""),
+            status: doc.status || "Submitted" as DocumentStatus,
+            downloadLink: doc.downloadLink || "",
+            requestReason: doc.requestReason || "",
+            fileName: doc.fileName || "",
+            storagePath: doc.storagePath || "",
+          });
+        });
+      }
+      
+      // Also include documents from the documents Map if they're not already in mappedDocuments
+      if (documents.size > 0) {
+        Array.from(documents.entries()).forEach(([key, blob]) => {
+          // Extract the file path and find corresponding metadata in applicationData
+          const fileName = key.split('/').pop() || key;
+          
+          // Check if this document is already in mappedDocuments
+          const exists = mappedDocuments.some(doc => 
+            doc.fileName === fileName || doc.storagePath?.includes(fileName)
+          );
+          
+          // If not, add it
+          if (!exists) {
+            const displayName = formatDocumentName(fileName);
+            
+            mappedDocuments.push({
+              name: displayName,
+              status: "Submitted" as DocumentStatus,
+              downloadLink: getDocumentURL(key) || "",
+              fileName: fileName,
+              storagePath: key
+            });
+          }
+        });
+      }
+      
+      console.log("Final mapped documents:", mappedDocuments);
       
       // Transform the data format to match Application type
       const transformedApplication: Application = {
@@ -104,13 +126,17 @@ export const ApplicationTracker = ({ applicationCode, userEmail }: ApplicationTr
         adviser: applicationData.proponent?.advisor || "",
         courseProgram: applicationData.proponent?.courseProgram || "",
         emailAddress: applicationData.proponent?.email || "",
-        progress: applicationStatus?.reviewProgress?.submissionCheck ? 'SC' : 
-                applicationStatus?.reviewProgress?.initialReview ? 'IR' : 
-                applicationStatus?.reviewProgress?.resubmission ? 'RS' : 
-                applicationStatus?.reviewProgress?.approved ? 'AP' : 
-                applicationStatus?.reviewProgress?.progressReport ? 'PR' : 
-                applicationStatus?.reviewProgress?.finalReport ? 'FR' : 
-                applicationStatus?.reviewProgress?.archived ? 'AR' : 'SC',
+        progress: applicationData.progress || // First check if explicit progress is set
+                  // Then check for reviewers - if present, we're in IR stage
+                  (applicationData.reviewers && applicationData.reviewers.length > 0) ? 'IR' :
+                  // Then fall back to review progress flags
+                  applicationStatus?.reviewProgress?.submissionCheck ? 'SC' : 
+                  applicationStatus?.reviewProgress?.initialReview ? 'IR' : 
+                  applicationStatus?.reviewProgress?.resubmission ? 'RS' : 
+                  applicationStatus?.reviewProgress?.approved ? 'AP' : 
+                  applicationStatus?.reviewProgress?.progressReport ? 'PR' : 
+                  applicationStatus?.reviewProgress?.finalReport ? 'FR' : 
+                  applicationStatus?.reviewProgress?.archived ? 'AR' : 'SC',
         status: applicationData.applicationStatus === "On-going review" ? 'OR' :
                applicationData.applicationStatus === "Approved" ? 'A' :
                applicationData.applicationStatus === "Completed" ? 'C' :
@@ -128,7 +154,7 @@ export const ApplicationTracker = ({ applicationCode, userEmail }: ApplicationTr
             name: doc.name,
             status: "Review Required" as DocumentStatus,
             downloadLink: "",
-            requestReason: doc.reason
+            requestReason: doc.reason || doc.requestReason
           })) || []
         },
         resubmission: {
@@ -205,28 +231,171 @@ export const ApplicationTracker = ({ applicationCode, userEmail }: ApplicationTr
   };
   
   // Handle document uploads by calling the appropriate API
-  const handleDocumentUploaded = (documentName: string) => {
-    // In a real implementation, this would call an API to update the document status
-    console.log(`Document ${documentName} uploaded successfully`);
+  const handleDocumentUploaded = async (documentName: string, file: File, description?: string) => {
+    if (!application || !applicationCode) return;
     
-    // Update local state to reflect the change
-    if (application) {
-      const updatedDocuments = application.documents.map(doc => 
-        doc.name === documentName 
-          ? { ...doc, status: "Revision Submitted" as DocumentStatus }
-          : doc
-      );
+    try {
+      // Display loading toast
+      toast({
+        title: "Uploading document...",
+        description: "Please wait while your document is uploaded.",
+      });
       
-      // Check if there are any documents still needing action
-      const documentsNeedingAction = updatedDocuments.filter(
-        doc => doc.status === "Review Required" || doc.status === "Pending"
-      );
+      // 1. Upload the file to Firebase Storage
+      const storage = getStorage();
+      const documentType = "revision"; // For revision uploads
+      const version = (application.resubmission.count + 1).toString();
+      const timestamp = new Date().getTime();
       
-      // If all requested documents have been addressed, remove the flag
-      setApplication({ 
-        ...application,
+      // Create a clean filename based on the document title input by the proponent
+      // Remove any special characters and spaces from the document name
+      const cleanDocName = documentName
+        .replace(/[^\w\s]/gi, '') // Remove special characters
+        .replace(/\s+/g, '_')     // Replace spaces with underscores
+        .trim();
+        
+      // Get the file extension from the original file
+      const fileExtension = file.name.split('.').pop()?.toLowerCase() || 'pdf';
+      
+      // Use the document name provided by the proponent instead of the original filename
+      const fileName = `${cleanDocName}_${timestamp}.${fileExtension}`;
+      
+      // Create appropriate path for the file
+      const storagePath = `protocolReviewApplications/${applicationCode}/${documentType}/${fileName}`;
+      const storageRef = ref(storage, storagePath);
+      
+      // Upload file
+      await uploadBytes(storageRef, file);
+      
+      // Get download URL
+      const downloadURL = await getDownloadURL(storageRef);
+      
+      // 2. Get the current application data from Firestore
+      const appRef = doc(db, "protocolReviewApplications", applicationCode);
+      const appSnapshot = await getDoc(appRef);
+      
+      if (!appSnapshot.exists()) {
+        throw new Error("Application not found");
+      }
+      
+      // 3. Update the document in Firestore
+      const appData = appSnapshot.data();
+      const currentDocuments = appData.documents || [];
+      
+      // Find the document to update or add a new one
+      let documentFound = false;
+      let oldDocumentPath = "";
+      
+      // Use the document name as the displayTitle
+      // This preserves the original document title
+      const displayTitle = documentName;
+      
+      // Update or add document
+      let updatedDocuments = currentDocuments.map((doc: any) => {
+        // Check if this is the same document type
+        if (doc.documentName === documentName ||
+            doc.displayName === documentName || 
+            (doc.title && doc.title === documentName)) {
+          
+          documentFound = true;
+          
+          // Store the old path to clean up later
+          if (doc.storagePath) {
+            oldDocumentPath = doc.storagePath;
+          }
+          
+          // Update with new info
+          return {
+            ...doc,
+            storagePath: storagePath,
+            fileName: fileName,
+            documentName: documentName,
+            displayName: documentName,
+            displayTitle: displayTitle, 
+            documentType: documentType,
+            version: version,
+            timestamp: timestamp,
+            status: "Revision Submitted",
+            uploadDate: timestamp,
+            downloadLink: downloadURL,
+          };
+        }
+        return doc;
+      });
+      
+      // If the document wasn't found, add it as a new document
+      if (!documentFound) {
+        updatedDocuments.push({
+          displayName: documentName,
+          displayTitle: displayTitle, 
+          fileName: fileName,
+          storagePath: storagePath,
+          timestamp: timestamp,
+          version: version,
+          documentType: documentType,
+          documentId: fileName,
+          documentName: documentName,
+          status: "Revision Submitted",
+          uploadDate: timestamp,
+          downloadLink: downloadURL,
+          description: description || "Revision document submitted by proponent",
+        });
+      }
+      
+      // Check if all additional documents have been fulfilled
+      const remainingAdditionalDocs = appData.additionalDocuments || [];
+      const allDocumentsSubmitted = remainingAdditionalDocs.every((reqDoc: any) => {
+        // Check if this document is in the updated documents list with "Revision Submitted" status
+        return updatedDocuments.some((doc: any) => 
+          (doc.name === reqDoc.name || doc.displayName === reqDoc.name) && 
+          doc.status === "Revision Submitted"
+        );
+      });
+      
+      // Create update object
+      const updateObject: any = {
         documents: updatedDocuments,
-        hasAdditionalDocumentsRequest: documentsNeedingAction.length > 0
+        hasAdditionalDocumentsRequest: !allDocumentsSubmitted,
+        updatedAt: new Date()
+      };
+      
+      // If all documents are submitted, clear the additionalDocuments array
+      if (allDocumentsSubmitted) {
+        updateObject.additionalDocuments = [];
+      }
+      
+      // 4. Update Firestore with the revised document array
+      await updateDoc(appRef, updateObject);
+      
+      // 5. Delete the old file from storage if it exists
+      if (oldDocumentPath) {
+        try {
+          const oldDocRef = ref(storage, oldDocumentPath);
+          await deleteObject(oldDocRef);
+          console.log("Old document deleted:", oldDocumentPath);
+        } catch (deleteError) {
+          console.error("Error deleting old document (this is not critical):", deleteError);
+        }
+      }
+      
+      console.log("Document uploaded successfully:", documentName);
+      
+      // Reload the page to show updated documents
+      toast({
+        title: "Success",
+        description: "Document revision submitted successfully. Refreshing page...",
+        variant: "default",
+      });
+      
+      setTimeout(() => {
+        window.location.reload();
+      }, 1500);
+    } catch (error) {
+      console.error("Error updating document status:", error);
+      toast({
+        title: "Error",
+        description: "Failed to upload document. Please try again.",
+        variant: "destructive",
       });
     }
   };
@@ -266,19 +435,27 @@ export const ApplicationTracker = ({ applicationCode, userEmail }: ApplicationTr
       
       <ProgressTracker 
         progress={application.progress} 
-        status={application.status} 
+        comments={applicationData.comments && applicationData.comments.length > 0 
+          ? applicationData.comments[applicationData.comments.length - 1]?.text 
+          : undefined}
+        documentRequests={applicationData.documentRequests}
+        fulfilledDocuments={application.documents
+          ?.filter(doc => doc.status === "Revision Submitted" || doc.status?.toLowerCase() === "submitted")
+          .map(doc => doc.name)}
       />
       
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
           <ApplicationProgressTabs application={application} />
           
+          {/* Replace DocumentList with EnhancedDocumentList */}
           <DocumentList 
-            documents={application.documents} 
+            applicationCode={applicationCode || ""}
             hasAdditionalDocumentsRequest={application.hasAdditionalDocumentsRequest}
             additionalDocumentsRequested={application.initialReview.additionalDocumentsRequested}
             onDocumentUploaded={handleDocumentUploaded}
             currentResubmissionCount={application.resubmission.count}
+            documents={application.documents || []}
           />
         </div>
         

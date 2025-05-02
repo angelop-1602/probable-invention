@@ -11,6 +11,9 @@ export interface ApplicationFormData {
   adviser: string;
   courseProgram: string;
   email: string;
+  abstract?: string;  // Optional abstract text
+  funding?: string;   // Optional funding type (e.g., 'R' for researcher-funded)
+  researchType?: string; // Optional research type (e.g., 'EX' for experimental)
   coResearchers?: string[]; // Optional array of co-researcher names
   _bypassDuplicateCheck?: boolean; // Optional flag to bypass duplicate check
 }
@@ -66,6 +69,7 @@ export interface DuplicateCheckResult {
  * Application submission result
  */
 export interface SubmissionResult {
-  applicationCode: string;
+  applicationCode?: string;  // Optional because it may be missing in case of error
   success: boolean;
+  message?: string;  // Optional response message
 } 

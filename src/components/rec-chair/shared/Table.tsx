@@ -22,6 +22,8 @@ import {
 } from "../../ui/pagination";
 import { useState } from "react";
 import { ViewReviewerDialog } from "../reviewers/ViewReviewerDialog";
+import { Filter } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../ui/select";
 
 interface ChairTableProps {
     title?: string;
@@ -41,8 +43,15 @@ export function ChairTable({
     onRefresh
 }: ChairTableProps) {
     const [currentPage, setCurrentPage] = useState(1);
+    const [categoryFilter, setCategoryFilter] = useState<string | null>(null);
     const itemsPerPage = 5;
-    const totalPages = Math.max(1, Math.ceil(data.length / itemsPerPage));
+    
+    // Filter data by category if a filter is selected
+    const filteredData = categoryFilter 
+        ? data.filter(item => item.category === categoryFilter)
+        : data;
+    
+    const totalPages = Math.max(1, Math.ceil(filteredData.length / itemsPerPage));
 
     const handlePageChange = (page: number) => {
         setCurrentPage(page);
@@ -50,14 +59,14 @@ export function ChairTable({
 
     // Get the current page of data
     const getCurrentPageData = () => {
-        // If pagination is hidden, return all data
+        // If pagination is hidden, return all filtered data
         if (hidePagination) {
-            return data;
+            return filteredData;
         }
         
         const startIndex = (currentPage - 1) * itemsPerPage;
         const endIndex = startIndex + itemsPerPage;
-        return data.slice(startIndex, endIndex);
+        return filteredData.slice(startIndex, endIndex);
     };
 
     // Render different table headers based on the tableType
@@ -81,6 +90,8 @@ export function ChairTable({
                         <TableHead>Principal Investigator</TableHead>
                         <TableHead>Submission Date</TableHead>
                         <TableHead>Course/Program</TableHead>
+                        <TableHead>Title</TableHead>
+                        <TableHead>Status</TableHead>
                         <TableHead>Action</TableHead>
                     </TableRow>
                 );
@@ -160,14 +171,35 @@ export function ChairTable({
                         </TableRow>
                     );
                 } else {
-                    // Default row rendering for other page types
+                    // Default row rendering for application data
                     return (
                         <TableRow key={index}>
-                            <TableCell>{item.spupRecCode || "SPUP_2025_00165_SR_KD"}</TableCell>
-                            <TableCell>{item.principalInvestigator || "Keith Dela Cruz"}</TableCell>
-                            <TableCell>{item.submissionDate?.toDate().toLocaleDateString() || "2023-10-15"}</TableCell>
-                            <TableCell>{item.courseProgram || "DIT"}</TableCell>
-                            <TableCell><Button size="sm">View</Button></TableCell>
+                            <TableCell>{item.spupRecCode || `SPUP_${new Date().getFullYear()}_${item.id?.substr(0, 5)}`}</TableCell>
+                            <TableCell>{item.principalInvestigator || "Unknown"}</TableCell>
+                            <TableCell>{formatDate(item.submissionDate)}</TableCell>
+                            <TableCell>{item.courseProgram || "N/A"}</TableCell>
+                            <TableCell className="max-w-md truncate">{item.title || "Untitled"}</TableCell>
+                            <TableCell>
+                                <Badge className={
+                                    item.status === 'approved' ? 'bg-green-100 dark:bg-green-950 text-green-800 dark:text-green-300 border border-green-200 dark:border-green-800' :
+                                    item.status === 'rejected' ? 'bg-red-100 dark:bg-red-950 text-red-800 dark:text-red-300 border border-red-200 dark:border-red-800' :
+                                    item.status === 'under review' ? 'bg-blue-100 dark:bg-blue-950 text-blue-800 dark:text-blue-300 border border-blue-200 dark:border-blue-800' :
+                                    'bg-yellow-100 dark:bg-yellow-950 text-yellow-800 dark:text-yellow-300 border border-yellow-200 dark:border-yellow-800'
+                                }>
+                                    {item.status ? item.status.charAt(0).toUpperCase() + item.status.slice(1) : 'Pending'}
+                                </Badge>
+                            </TableCell>
+                            <TableCell>
+                                <Button 
+                                    size="sm" 
+                                    onClick={() => {
+                                        // Navigate to application details
+                                        window.location.href = `/rec-chair/applications/${item.id}`;
+                                    }}
+                                >
+                                    View
+                                </Button>
+                            </TableCell>
                         </TableRow>
                     );
                 }
@@ -176,7 +208,7 @@ export function ChairTable({
             // Show placeholder row if no data is available
             return (
                 <TableRow>
-                    <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                         No data available
                     </TableCell>
                 </TableRow>
@@ -189,7 +221,30 @@ export function ChairTable({
 
     return (
         <section>
-            {title && <h2 className="text-2xl font-semibold mb-6 text-primary-600 dark:text-primary-400">{title}</h2>}
+            <div className="flex justify-between items-center mb-6">
+                {title && <h2 className="text-2xl font-semibold text-primary-600 dark:text-primary-400">{title}</h2>}
+                
+                {tableType === 'default' && (
+                    <div className="flex items-center">
+                        <Filter className="mr-2 h-4 w-4 text-gray-500" />
+                        <Select
+                            value={categoryFilter || 'all'}
+                            onValueChange={(value) => setCategoryFilter(value === 'all' ? null : value)}
+                        >
+                            <SelectTrigger className="w-[180px]">
+                                <SelectValue placeholder="Filter by category" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">All Categories</SelectItem>
+                                <SelectItem value="Biomedical">Biomedical</SelectItem>
+                                <SelectItem value="Social Science">Social Science</SelectItem>
+                                <SelectItem value="Clinical Trial">Clinical Trial</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+                )}
+            </div>
+            
             <Table>
                 <TableCaption>{caption}</TableCaption>
                 <TableHeader>

@@ -31,9 +31,8 @@ export default function TrackingPage() {
             setError("Invalid application code format. Should be like REC2023ABCDEF");
             return;
         }
-
         // Navigate to the track page with the code
-        router.push(`/track-application?code=${applicationCode}`);
+        router.push(`/track-application/${applicationCode}`);
     };
 
     return (

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuthContext } from '@/lib/auth-context';
 import {
@@ -29,6 +29,7 @@ import { LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { CommandMenu } from '@/components/rec-chair/command-menu';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
+import { Toaster } from '@/components/ui/sonner';
 
 export default function RecChairLayout({
   children,
@@ -39,6 +40,7 @@ export default function RecChairLayout({
   const router = useRouter();
   const pathname = usePathname();
   const isAuthPage = pathname?.includes('/rec-chair/auth');
+  const [mainContentKey, setMainContentKey] = useState<string>(pathname || '');
 
   // Generate breadcrumb items based on the current path
   const generateBreadcrumbs = () => {
@@ -72,6 +74,13 @@ export default function RecChairLayout({
 
   const breadcrumbs = generateBreadcrumbs();
 
+  // Update mainContentKey when pathname changes to trigger re-render of only the main content
+  useEffect(() => {
+    if (pathname) {
+      setMainContentKey(pathname);
+    }
+  }, [pathname]);
+
   useEffect(() => {
     if (!loading) {
       if (!isAuthenticated && !isAuthPage) {
@@ -95,8 +104,18 @@ export default function RecChairLayout({
 
   // If on auth page, just render the children without sidebar
   if (isAuthPage) {
-    return <>{children}</>;
+    return (
+      <>
+        {children}
+        <Toaster />
+      </>
+    );
   }
+
+  // Custom navigation handler for client-side navigation
+  const handleNavigation = (path: string) => {
+    router.push(path);
+  };
 
   // Only render sidebar layout if authenticated and not on auth page
   if (isAuthenticated && !isAuthPage) {
@@ -130,7 +149,7 @@ export default function RecChairLayout({
                   <SidebarMenuButton
                     className="py-3 px-4 text-base transition-all duration-200 hover:translate-x-1"
                     isActive={pathname === '/rec-chair'}
-                    onClick={() => router.push('/rec-chair')}
+                    onClick={() => handleNavigation('/rec-chair')}
                   >
                     <LayoutDashboard className="h-6 w-6 mr-3" />
                     <span className="text-lg">Dashboard</span>
@@ -140,7 +159,7 @@ export default function RecChairLayout({
                   <SidebarMenuButton
                     className="py-3 px-4 text-base transition-all duration-200 hover:translate-x-1"
                     isActive={pathname?.includes('/rec-chair/applications')}
-                    onClick={() => router.push('/rec-chair/applications')}
+                    onClick={() => handleNavigation('/rec-chair/applications')}
                   >
                     <Files className="h-6 w-6 mr-3" />
                     <span className="text-lg">Applications</span>
@@ -150,7 +169,7 @@ export default function RecChairLayout({
                   <SidebarMenuButton
                     className="py-3 px-4 text-base transition-all duration-200 hover:translate-x-1"
                     isActive={pathname?.includes('/rec-chair/progress-report')}
-                    onClick={() => router.push('/rec-chair/progress-report')}
+                    onClick={() => handleNavigation('/rec-chair/progress-report')}
                   >
                     <FileCheck className="h-6 w-6 mr-3" />
                     <span className="text-lg">Progress Report</span>
@@ -160,7 +179,7 @@ export default function RecChairLayout({
                   <SidebarMenuButton
                     className="py-3 px-4 text-base transition-all duration-200 hover:translate-x-1"
                     isActive={pathname?.includes('/rec-chair/final-report')}
-                    onClick={() => router.push('/rec-chair/final-report')}
+                    onClick={() => handleNavigation('/rec-chair/final-report')}
                   >
                     <FileCheck className="h-6 w-6 mr-3" />
                     <span className="text-lg">Final Report</span>
@@ -170,7 +189,7 @@ export default function RecChairLayout({
                   <SidebarMenuButton
                     className="py-3 px-4 text-base transition-all duration-200 hover:translate-x-1"
                     isActive={pathname?.includes('/rec-chair/archiving')}
-                    onClick={() => router.push('/rec-chair/archiving')}
+                    onClick={() => handleNavigation('/rec-chair/archiving')}
                   >
                     <Archive className="h-6 w-6 mr-3" />
                     <span className="text-lg">Archiving</span>
@@ -180,7 +199,7 @@ export default function RecChairLayout({
                   <SidebarMenuButton
                     className="py-3 px-4 text-base transition-all duration-200 hover:translate-x-1"
                     isActive={pathname?.includes('/rec-chair/termination')}
-                    onClick={() => router.push('/rec-chair/termination')}
+                    onClick={() => handleNavigation('/rec-chair/termination')}
                   >
                     <ArchiveX className="h-6 w-6 mr-3" />
                     <span className="text-lg">Termination</span>
@@ -190,7 +209,7 @@ export default function RecChairLayout({
                   <SidebarMenuButton
                     className="py-3 px-4 text-base transition-all duration-200 hover:translate-x-1"
                     isActive={pathname?.includes('/rec-chair/reviewers')}
-                    onClick={() => router.push('/rec-chair/reviewers')}
+                    onClick={() => handleNavigation('/rec-chair/reviewers')}
                   >
                     <NotebookPen className="h-6 w-6 mr-3" />
                     <span className="text-lg">Primary Reviewers</span>
@@ -224,7 +243,10 @@ export default function RecChairLayout({
                     <React.Fragment key={breadcrumb.path}>
                       <BreadcrumbItem className={index === 0 ? "hidden md:block" : ""}>
                         {index < breadcrumbs.length - 1 ? (
-                          <BreadcrumbLink href={breadcrumb.path}>{breadcrumb.label}</BreadcrumbLink>
+                          <BreadcrumbLink onClick={() => handleNavigation(breadcrumb.path)} href="#" 
+                            className="cursor-pointer">
+                            {breadcrumb.label}
+                          </BreadcrumbLink>
                         ) : (
                           <BreadcrumbPage>{breadcrumb.label}</BreadcrumbPage>
                         )}
@@ -246,12 +268,15 @@ export default function RecChairLayout({
                 </Button>
               </div>
             </header>
-            <main className="flex-1 p-10 overflow-auto relative">
-              {children}
+            <main className="flex-1 p-6 overflow-auto relative">
+              <React.Fragment key={mainContentKey}>
+                {children}
+              </React.Fragment>
             </main>
           </div>
         </div>
         <CommandMenu />
+        <Toaster />
       </SidebarProvider>
     );
   }

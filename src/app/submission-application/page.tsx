@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { ApplicationInformation } from "@/components/proponent/submission-application/ApplicationInformation";
-import { ApplicationDocuments } from "@/components/proponent/submission-application/ApplicationDocuments";
+import ApplicationDocuments from "@/components/proponent/submission-application/ApplicationDocuments";
 import { SuccessModal } from "@/components/proponent/submission-application/SuccessModal";
 import { DuplicateConfirmationModal } from "@/components/proponent/submission-application/DuplicateConfirmationModal";
 import { ProponentHeader } from "@/components/proponent/shared/ProponentHeader";
@@ -110,17 +110,8 @@ export default function SubmissionPage() {
       return;
     }
 
-    // Validate required documents
-    if (!documentFiles.form07A || 
-        !documentFiles.form07B || 
-        !documentFiles.form07C || 
-        !documentFiles.researchProposal || 
-        !documentFiles.minutesOfProposalDefense || 
-        !documentFiles.questionnaires) {
-      setError("Please upload all required documents (Form 07A, Form 07B, Form 07C, Research Proposal, Minutes of Proposal Defense, and Questionnaires).");
-      return;
-    }
-
+    // Essential documents are no longer required fields
+    
     // Simulate upload progress for better user experience
     setUploadStatus("Preparing files...");
     

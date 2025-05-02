@@ -14,6 +14,8 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { DocumentText } from "lucide-react";
 
 interface DocumentListProps {
   documents: Document[];
@@ -142,6 +144,25 @@ export const DocumentList = ({
     }
   };
 
+  const getStatusVariant = (status: string) => {
+    switch (status) {
+      case "Accepted":
+        return "default";
+      case "Review Required":
+        return "destructive";
+      case "Pending":
+        return "secondary";
+      case "Revision Submitted":
+        return "destructive";
+      case "Submitted":
+        return "destructive";
+      case "Issued":
+        return "default";
+      default:
+        return "default";
+    }
+  };
+
   return (
     <>
       <Card>
@@ -190,71 +211,35 @@ export const DocumentList = ({
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {actualDocuments.map((doc, index) => (
-              <div key={index} className="flex flex-col p-3 border rounded-md">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center flex-1">
-                    <FileText className="h-5 w-5 mr-2 text-gray-500 flex-shrink-0" />
-                    <div>
-                      <p className="text-sm font-medium">{doc.name}</p>
-                      <p className="text-xs text-gray-500">
-                        {doc.status === "Accepted" ? (
-                          <span className="flex items-center text-green-600">
-                            <CheckCircle className="h-3 w-3 mr-1" /> Accepted
-                          </span>
-                        ) : doc.status === "Review Required" ? (
-                          <span className="flex items-center text-amber-600">
-                            <AlertCircle className="h-3 w-3 mr-1" /> Review Required
-                          </span>
-                        ) : doc.status === "Pending" ? (
-                          <span className="flex items-center text-amber-600">
-                            <AlertCircle className="h-3 w-3 mr-1" /> Pending Upload
-                          </span>
-                        ) : doc.status === "Revision Submitted" ? (
-                          <span className="flex items-center text-blue-600">
-                            <CheckCircle className="h-3 w-3 mr-1" /> Revision Submitted
-                          </span>
-                        ) : doc.status === "Submitted" ? (
-                          <span className="flex items-center text-blue-600">
-                            <CheckCircle className="h-3 w-3 mr-1" /> Submitted
-                          </span>
-                        ) : doc.status === "Issued" ? (
-                          <span className="flex items-center text-green-600">
-                            <CheckCircle className="h-3 w-3 mr-1" /> Issued
-                          </span>
-                        ) : (
-                          <span className="flex items-center text-gray-600">
-                            {doc.status}
-                          </span>
-                        )}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex gap-1">
-                    {(doc.status === "Review Required" || doc.status === "Pending") && doc.requestReason && (
-                      <Button variant="ghost" size="sm" onClick={() => handleViewRequest(doc)}>
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                    )}
-                    {(doc.status === "Review Required" || doc.status === "Pending") && (
-                      <Button variant="ghost" size="sm" onClick={() => handleUploadDocument(doc)}>
-                        <Upload className="h-4 w-4" />
-                      </Button>
-                    )}
-                    {doc.status === "Accepted" && doc.name.includes("Form 07A") && (
-                      <Button variant="ghost" size="sm">
-                        <PenSquare className="h-4 w-4" />
-                      </Button>
-                    )}
+              <div key={doc.name || index} className="flex flex-col md:flex-row border-b p-3 last:border-0">
+                <div className="flex-1">
+                  <h3 className="font-medium text-sm flex items-center">
+                    <DocumentText className="h-4 w-4 text-primary mr-2" strokeWidth={2} />
+                    {doc.displayTitle || doc.displayName || doc.name || "Document"}
+                  </h3>
+                  <div className="flex items-center mt-1">
+                    <Badge variant={getStatusVariant(doc.status || "Pending")} className="mr-2">
+                      {doc.status}
+                    </Badge>
                   </div>
                 </div>
-                {/* Show resubmission version if applicable */}
-                {doc.resubmissionVersion && doc.resubmissionVersion > 0 && (
-                  <div className="mt-2 text-xs text-gray-500">
-                    <span className="bg-gray-100 px-2 py-1 rounded-full text-xs">
-                      Resubmission #{doc.resubmissionVersion}
-                    </span>
-                  </div>
-                )}
+                <div className="flex gap-1">
+                  {(doc.status === "Review Required" || doc.status === "Pending") && doc.requestReason && (
+                    <Button variant="ghost" size="sm" onClick={() => handleViewRequest(doc)}>
+                      <Eye className="h-4 w-4" />
+                    </Button>
+                  )}
+                  {(doc.status === "Review Required" || doc.status === "Pending") && (
+                    <Button variant="ghost" size="sm" onClick={() => handleUploadDocument(doc)}>
+                      <Upload className="h-4 w-4" />
+                    </Button>
+                  )}
+                  {doc.status === "Accepted" && doc.name.includes("Form 07A") && (
+                    <Button variant="ghost" size="sm">
+                      <PenSquare className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
               </div>
             ))}
           </div>

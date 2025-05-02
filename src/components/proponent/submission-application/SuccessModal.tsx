@@ -70,13 +70,6 @@ function SuccessModal({ isOpen, applicationCode, onClose }: SuccessModalProps) {
         
         <DialogFooter className="flex flex-col sm:flex-row gap-2">
           <Button 
-            variant="outline" 
-            className="sm:w-full"
-            onClick={handleGoHome}
-          >
-            Back to Home
-          </Button>
-          <Button 
             className="sm:w-full"
             onClick={handleTrackNow}
           >
