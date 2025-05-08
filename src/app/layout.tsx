@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { AuthProvider } from "@/lib/auth-context";
+import { AuthProvider } from "@/lib/auth";
 import { ThemeProvider } from "@/components/ui/theme-provider";
 import DataPrefetcher from "@/components/shared/DataPrefetcher";
 import { AlertProvider } from "@/components/shared/Alerts";

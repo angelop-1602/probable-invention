@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from "react";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { 
   Card, 
   CardContent, 
@@ -17,11 +17,15 @@ import {
   TooltipTrigger 
 } from "@/components/ui/tooltip";
 import { Badge } from "@/components/ui/badge";
-import { InfoIcon, Plus, Trash2, Download } from "lucide-react";
+import { InfoIcon, Plus, Trash2, Download, Upload, Loader2 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { DocumentFiles } from "@/types/protocol-application/submission";
+import { useDocumentCache } from '@/hooks/useDocumentCache';
+import { DocumentPreview } from "@/components/shared/DocumentPreview";
 
 // Base document types that are predefined
 interface BaseDocumentFile {
@@ -34,6 +38,7 @@ interface BaseDocumentFile {
   curriculumVitae: File[] | null;
   questionnaires: File[] | null;
   technicalReview: File[] | null;
+  proofOfPayment: File[] | null;
 }
 
 // Custom document with dynamic keys
@@ -45,8 +50,9 @@ interface CustomDocuments {
 interface DocumentFile extends BaseDocumentFile, CustomDocuments {}
 
 interface ApplicationDocumentsProps {
-  onDocumentsChange: (files: DocumentFile) => void;
+  onDocumentsChange: (documents: DocumentFiles) => void;
   isSubmitting: boolean;
+  applicationCode?: string;
 }
 
 type DocumentStatus = {
@@ -62,17 +68,94 @@ type DocumentInfo = {
   templateUrl?: string; // URL to download the template
 };
 
-function ApplicationDocuments({ onDocumentsChange, isSubmitting }: ApplicationDocumentsProps) {
-  const [documents, setDocuments] = useState<DocumentFile>({
-    form07A: null,
-    form07B: null,
-    form07C: null,
-    researchProposal: null,
-    minutesOfProposalDefense: null,
-    abstract: null,
-    curriculumVitae: null,
-    questionnaires: null,
-    technicalReview: null,
+// Custom hook to manage document state and logic
+function useDocumentSubmission({
+  initialDocuments,
+  initialStatus,
+  onDocumentsChange,
+  isSubmitting,
+  customDocuments,
+  setCustomDocuments,
+  customDocumentInfo,
+  setCustomDocumentInfo,
+  fileErrors,
+  setFileErrors,
+}: {
+  initialDocuments: DocumentFiles;
+  initialStatus: Record<string, string>;
+  onDocumentsChange: (documents: DocumentFiles) => void;
+  isSubmitting: boolean;
+  customDocuments: string[];
+  setCustomDocuments: React.Dispatch<React.SetStateAction<string[]>>;
+  customDocumentInfo: Record<string, DocumentInfo>;
+  setCustomDocumentInfo: React.Dispatch<React.SetStateAction<Record<string, DocumentInfo>>>;
+  fileErrors: Record<string, string>;
+  setFileErrors: React.Dispatch<React.SetStateAction<Record<string, string>>>;
+}) {
+  const [documents, setDocuments] = useState(initialDocuments);
+  const [status, setStatus] = useState(initialStatus);
+
+  // Helper to check if all required documents have a file
+  const allDocumentsUploaded = Object.entries(documents)
+    .filter(([key]) => !customDocuments.includes(key))
+    .every(([key, value]) => value.files && value.files.length === 1);
+  const allCustomDocumentsUploaded = customDocuments.every(
+    (key) => documents[key]?.files && documents[key]?.files.length === 1
+  );
+  const canSubmit = allDocumentsUploaded && allCustomDocumentsUploaded;
+
+  // File change handler
+  const handleFileChange = (key: string, files: File[]) => {
+    if (files.length > 1) return; // Only allow one file
+    const newDocuments = {
+      ...documents,
+      [key]: {
+        ...documents[key],
+        files: files.length === 1 ? [files[0]] : []
+      }
+    };
+    setDocuments(newDocuments);
+    onDocumentsChange(newDocuments);
+  };
+
+  // Remove custom document
+  const handleRemoveCustomDocument = (key: string) => {
+    setCustomDocuments((prev) => prev.filter((k) => k !== key));
+    setCustomDocumentInfo((prev) => {
+      const newInfo = { ...prev };
+      delete newInfo[key];
+      return newInfo;
+    });
+    setDocuments((prev) => {
+      const newDocs = { ...prev };
+      delete newDocs[key];
+      return newDocs;
+    });
+  };
+
+  return {
+    documents,
+    setDocuments,
+    status,
+    setStatus,
+    canSubmit,
+    handleFileChange,
+    handleRemoveCustomDocument,
+  };
+}
+
+function ApplicationDocuments({ onDocumentsChange, isSubmitting, applicationCode }: ApplicationDocumentsProps) {
+  const [documents, setDocuments] = useState<DocumentFiles>({
+    form07A: { files: [], title: "Form 07A: Protocol Review Application Form" },
+    form07B: { files: [], title: "Form 07B: Adviser's Certification Form" },
+    form07C: { files: [], title: "Form 07C: Informed Consent Template" },
+    researchProposal: { files: [], title: "Research Proposal/Study Protocol" },
+    minutesOfProposalDefense: { files: [], title: "Minutes of Proposal Defense" },
+    abstract: { files: [], title: "Abstract" },
+    curriculumVitae: { files: [], title: "Curriculum Vitae" },
+    questionnaires: { files: [], title: "Questionnaires" },
+    technicalReview: { files: [], title: "Technical Review" },
+    proofOfPayment: { files: [], title: "Proof of Payment" },
   });
 
   const [status, setStatus] = useState<DocumentStatus>({
@@ -85,6 +168,7 @@ function ApplicationDocuments({ onDocumentsChange, isSubmitting }: ApplicationDo
     curriculumVitae: "pending",
     questionnaires: "pending",
     technicalReview: "pending",
+    proofOfPayment: "pending",
   });
   
   // For custom documents
@@ -125,12 +209,26 @@ function ApplicationDocuments({ onDocumentsChange, isSubmitting }: ApplicationDo
       acceptTypes: { 'application/pdf': ['.pdf'] },
       multiple: false,
       category: 'essential',
+    }, 
+    abstract: {
+      title: "Abstract",
+      description: "Concise summary of the study's objectives, methods, and key points.",
+      acceptTypes: { 'application/pdf': ['.pdf'] },
+      multiple: false,
+      category: 'essential',
     },
     minutesOfProposalDefense: {
       title: "Minutes of Proposal Defense",
       description: "Records discussions and decisions made during the proposal defense.",
       acceptTypes: { 'application/pdf': ['.pdf'] },
       multiple: false,
+      category: 'essential',
+    },
+    curriculumVitae: {
+      title: "Curriculum Vitae of Researchers",
+      description: "Shows qualifications and background of the research team.",
+      acceptTypes: { 'application/pdf': ['.pdf'] },
+      multiple: true,
       category: 'essential',
     },
     questionnaires: {
@@ -140,26 +238,19 @@ function ApplicationDocuments({ onDocumentsChange, isSubmitting }: ApplicationDo
       multiple: true,
       category: 'essential',
     },
-    abstract: {
-      title: "Abstract",
-      description: "Concise summary of the study's objectives, methods, and key points.",
-      acceptTypes: { 'application/pdf': ['.pdf'] },
-      multiple: false,
-      category: 'additional',
-    },
-    curriculumVitae: {
-      title: "Curriculum Vitae of Researchers",
-      description: "Shows qualifications and background of the research team.",
-      acceptTypes: { 'application/pdf': ['.pdf'] },
-      multiple: true,
-      category: 'additional',
-    },
     technicalReview: {
       title: "Technical Review Approval",
       description: "Required if the study needs additional technical or specialized review.",
       acceptTypes: { 'application/pdf': ['.pdf'] },
       multiple: false,
-      category: 'additional',
+      category: 'essential',
+    },
+    proofOfPayment: {
+      title: "Proof of Payment",
+      description: "Proof of payment of the application fee.",
+      acceptTypes: { 'application/pdf': ['.pdf'] },
+      multiple: false,
+      category: 'essential',
     },
   };
   
@@ -171,207 +262,152 @@ function ApplicationDocuments({ onDocumentsChange, isSubmitting }: ApplicationDo
   // Store custom document info
   const [customDocumentInfo, setCustomDocumentInfo] = useState<Record<string, DocumentInfo>>({});
 
-  const handleFileChange = (key: string, files: File[]) => {
-    const newDocuments = { ...documents, [key]: files.length > 0 ? files : null };
-    setDocuments(newDocuments);
-    
-    // Store the document title for use as displayTitle
-    // For standard documents use the title from documentInfo
-    if (Object.keys(documentInfo).includes(key as keyof BaseDocumentFile)) {
-      const title = documentInfo[key as keyof BaseDocumentFile].title;
-      // Store this title in localStorage so it can be retrieved during upload
-      try {
-        const existingTitlesStr = localStorage.getItem('documentTitles') || '{}';
-        const existingTitles = JSON.parse(existingTitlesStr);
-        localStorage.setItem('documentTitles', JSON.stringify({
-          ...existingTitles,
-          [key]: title
-        }));
-      } catch (error) {
-        console.error("Error saving document title to localStorage:", error);
-      }
-    }
-    
-    // Pass documents and metadata to parent component
-    onDocumentsChange(newDocuments);
-    
-    // Update status
-    setStatus(prev => ({
-      ...prev,
-      [key]: files.length > 0 ? "completed" : "pending"
-    }));
-  };
+  const [fileErrors, setFileErrors] = useState<Record<string, string>>( {} );
 
-  const handleAddDocument = () => {
-    if (!newDocumentTitle.trim()) return;
-    
-    const docKey = `custom_${Date.now()}`;
-    
-    // Add to custom documents list
-    setCustomDocuments([...customDocuments, docKey]);
-    
-    // Create document info object with the correct type
-    const docInfo: DocumentInfo = {
-      title: newDocumentTitle,
-      description: newDocumentDescription || "Additional document",
-      acceptTypes: { 'application/pdf': ['.pdf'] },
-      multiple: false,
-      category: 'additional',
+  // Use the custom hook for document logic
+  const {
+    documents: documentsInHook,
+    setDocuments: setDocumentsInHook,
+    status: statusInHook,
+    setStatus: setStatusInHook,
+    canSubmit,
+    handleFileChange: handleFileChangeInHook,
+    handleRemoveCustomDocument,
+  } = useDocumentSubmission({
+    initialDocuments: {
+      form07A: { files: [], title: "Form 07A: Protocol Review Application Form" },
+      form07B: { files: [], title: "Form 07B: Adviser's Certification Form" },
+      form07C: { files: [], title: "Form 07C: Informed Consent Template" },
+      researchProposal: { files: [], title: "Research Proposal/Study Protocol" },
+      minutesOfProposalDefense: { files: [], title: "Minutes of Proposal Defense" },
+      curriculumVitae: { files: [], title: "Curriculum Vitae" },
+      questionnaires: { files: [], title: "Questionnaires" },
+      technicalReview: { files: [], title: "Technical Review" },
+      proofOfPayment: { files: [], title: "Proof of Payment" },
+    },
+    initialStatus: {
+      form07A: "pending",
+      form07B: "pending",
+      form07C: "pending",
+      researchProposal: "pending",
+      minutesOfProposalDefense: "pending",
+      curriculumVitae: "pending",
+      questionnaires: "pending",
+      technicalReview: "pending",
+      proofOfPayment: "pending",
+    },
+    onDocumentsChange,
+    isSubmitting,
+    customDocuments,
+    setCustomDocuments,
+    customDocumentInfo,
+    setCustomDocumentInfo,
+    fileErrors,
+    setFileErrors,
+  });
+
+  // Add: Use the document cache for subcollection-zip files
+  const { isLoading: isZipLoading, error: zipError, fileManifest, getFile } = useDocumentCache(applicationCode);
+  const [zipPreviewFile, setZipPreviewFile] = useState<{ title: string; blobUrl: string } | null>(null);
+  const [zipPreviewLoading, setZipPreviewLoading] = useState(false);
+
+  useEffect(() => {
+    return () => {
+      if (zipPreviewFile?.blobUrl) URL.revokeObjectURL(zipPreviewFile.blobUrl);
     };
-    
-    // Add info for the new document
-    setCustomDocumentInfo({
-      ...customDocumentInfo,
-      [docKey]: docInfo
-    });
-    
-    // Store custom document info in localStorage for retrieval during processing
-    try {
-      // First try to get existing data
-      const existingInfoString = localStorage.getItem('customDocumentInfo');
-      const existingInfo = existingInfoString ? JSON.parse(existingInfoString) : {};
-      
-      // Add the new document info
-      const updatedInfo = {
-        ...existingInfo,
-        [docKey]: {
-          title: newDocumentTitle,
-          description: newDocumentDescription || "Additional document"
-        }
-      };
-      
-      // Save back to localStorage
-      localStorage.setItem('customDocumentInfo', JSON.stringify(updatedInfo));
-      
-      // Also save the title for the displayTitle
-      const existingTitlesStr = localStorage.getItem('documentTitles') || '{}';
-      const existingTitles = JSON.parse(existingTitlesStr);
-      localStorage.setItem('documentTitles', JSON.stringify({
-        ...existingTitles,
-        [docKey]: newDocumentTitle
-      }));
-    } catch (error) {
-      console.error("Error saving custom document info to localStorage:", error);
-    }
-    
-    // Initialize status and document for this new key
-    setStatus({
-      ...status,
-      [docKey]: "pending"
-    });
-    
-    setDocuments({
-      ...documents,
-      [docKey]: null
-    });
-    
-    // Reset form and close dialog
-    setNewDocumentTitle("");
-    setNewDocumentDescription("");
-    setIsAddDocumentOpen(false);
-  };
+  }, [zipPreviewFile]);
 
-  const handleRemoveCustomDocument = (key: string) => {
-    // Remove from custom documents list
-    setCustomDocuments(customDocuments.filter(k => k !== key));
-    
-    // Remove from status
-    const newStatus = { ...status };
-    delete newStatus[key];
-    setStatus(newStatus);
-    
-    // Remove from documents
-    const newDocuments = { ...documents };
-    delete newDocuments[key];
-    setDocuments(newDocuments);
-    onDocumentsChange(newDocuments);
-    
-    // Remove from custom info
-    const newCustomInfo = { ...customDocumentInfo };
-    delete newCustomInfo[key];
-    setCustomDocumentInfo(newCustomInfo);
-  };
+  // Responsive grid for document uploaders
+  const renderDocumentGrid = (docKeys: string[], infoMap: Record<string, DocumentInfo>, isCustom = false) => (
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6">
+      {docKeys.map((key: string) => (
+        <div key={key} className="space-y-2 flex justify-center">
+          <div className="relative p-4 border rounded-lg bg-card w-full max-w-[450px] min-w-[220px] mx-auto flex flex-col justify-between h-full">
+            <div className="flex justify-between items-start mb-2">
+              <div className="flex-1">
+                <div className="flex items-center gap-2">
+                  <h3 className="text-sm font-medium">{infoMap[key].title}</h3>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <InfoIcon className="h-3 w-3 ml-1 text-muted-foreground hover:text-foreground cursor-help" />
+                      </TooltipTrigger>
+                      <TooltipContent>
+                      <p className="text-xs text-white">{infoMap[key].description}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                  {statusInHook[key] === "completed" && (
+                    <Badge variant="outline" className="text-[10px] bg-green-50 text-green-700 border-green-200">Uploaded</Badge>
+                  )}
+                  {infoMap[key].templateUrl && (
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="h-6 w-6 p-0" 
+                            asChild
+                          >
+                            <a
+                              href={infoMap[key].templateUrl}
+                              download={getFileName(infoMap[key].title)}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <Download className="h-4 w-4 text-blue-500" />
+                            </a>
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p className="text-xs">Download template</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  )}
+                </div>
 
-  const renderDocumentItem = (key: string, info: DocumentInfo, isCustom = false) => {
-    return (
-      <div className="relative p-4 border rounded-lg bg-card" key={key}>
-        <div className="flex justify-between items-start mb-2">
-          <div className="flex-1">
-            <div className="flex items-center gap-2">
-              <h3 className="text-sm font-medium">{info.title}</h3>
-              {status[key] === "completed" && (
-                <Badge variant="outline" className="text-[10px] bg-green-50 text-green-700 border-green-200">Uploaded</Badge>
-              )}
-              
-              {info.templateUrl && (
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        className="h-6 w-6 p-0" 
-                        asChild
-                      >
-                        <a
-                          href={info.templateUrl}
-                          download={getFileName(info.title)}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <Download className="h-4 w-4 text-blue-500" />
-                        </a>
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p className="text-xs">Download template</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
+              </div>
+              {isCustom && (
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="h-6 w-6 rounded-full" 
+                  onClick={() => handleRemoveCustomDocument(key)}
+                  disabled={isSubmitting}
+                >
+                  <Trash2 className="h-4 w-4 text-muted-foreground hover:text-destructive" />
+                  <span className="sr-only">Remove document</span>
+                </Button>
               )}
             </div>
-            <div className="flex items-center mt-1">
-              <p className="text-xs text-muted-foreground">{info.description}</p>
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <InfoIcon className="h-3 w-3 ml-1 text-muted-foreground hover:text-foreground cursor-help" />
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p className="text-xs">
-                      {info.multiple ? 'You can upload multiple files' : 'Upload a single file'}. 
-                      Accepted formats: PDF only
-                    </p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+            <div className="flex flex-col gap-2 items-center justify-center flex-1">
+              <FileUploader
+                id={key}
+                accept={{ 'application/pdf': ['.pdf'] }}
+                multiple={false}
+                onFilesSelected={(files) => handleFileChangeInHook(key, files)}
+                required={false}
+                label={undefined}
+                className="w-full"
+                disabled={isSubmitting}
+              />
+              {documentsInHook[key]?.files && documentsInHook[key]?.files.length === 1 && (
+                <span className="text-xs text-green-700 dark:text-green-400 font-medium truncate max-w-[200px] md:max-w-[300px]">
+                  ✔ {documentsInHook[key]?.files[0].name}
+                </span>
+              )}
+              {fileErrors[key] && (
+                <p className="text-sm text-red-500">{fileErrors[key]}</p>
+              )}
             </div>
           </div>
-          
-          {isCustom && (
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              className="h-6 w-6 rounded-full" 
-              onClick={() => handleRemoveCustomDocument(key)}
-            >
-              <Trash2 className="h-4 w-4 text-muted-foreground hover:text-destructive" />
-              <span className="sr-only">Remove document</span>
-            </Button>
-          )}
         </div>
-        
-        <FileUploader
-          id={key}
-          accept={info.acceptTypes}
-          multiple={info.multiple}
-          onFilesSelected={(files) => handleFileChange(key, files)}
-          className={`${isSubmitting ? 'opacity-60 pointer-events-none' : ''}`}
-        />
-      </div>
-    );
-  };
+      ))}
+    </div>
+  );
 
   return (
     <Card className="w-full">
@@ -382,6 +418,41 @@ function ApplicationDocuments({ onDocumentsChange, isSubmitting }: ApplicationDo
         </CardDescription>
       </CardHeader>
       <CardContent>
+        {/* Show zip-cached files if available */}
+        {isZipLoading && (
+          <div className="mb-4 text-sm text-muted-foreground">Loading zipped documents...</div>
+        )}
+        {zipError && (
+          <div className="mb-4 text-sm text-red-500">{zipError}</div>
+        )}
+        {fileManifest && fileManifest.length > 0 && (
+          <div className="mb-6">
+            <h4 className="font-semibold mb-2">All Uploaded Files (Zip Package)</h4>
+            <ul className="space-y-2">
+              {fileManifest.map((file) => (
+                <li key={file.fileName} className="flex items-center justify-between border rounded p-2">
+                  <span>{file.originalTitle || file.fileName}</span>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={async () => {
+                      setZipPreviewLoading(true);
+                      const blob = await getFile(file.fileName);
+                      if (blob) {
+                        const url = URL.createObjectURL(blob);
+                        setZipPreviewFile({ title: file.originalTitle || file.fileName, blobUrl: url });
+                      }
+                      setZipPreviewLoading(false);
+                    }}
+                    disabled={zipPreviewLoading}
+                  >
+                    {zipPreviewLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Preview'}
+                  </Button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
         <Tabs defaultValue="essential" className="w-full">
           <TabsList className="grid grid-cols-2 mb-6">
             <TabsTrigger value="essential">Essential Documents</TabsTrigger>
@@ -389,11 +460,8 @@ function ApplicationDocuments({ onDocumentsChange, isSubmitting }: ApplicationDo
           </TabsList>
           
           <TabsContent value="essential" className="mt-0">
-
-            <div className="grid gap-4 md:grid-cols-2">
-              {Object.keys(documentInfo)
-                .filter(key => documentInfo[key as keyof BaseDocumentFile].category === 'essential')
-                .map((key) => renderDocumentItem(key, documentInfo[key as keyof BaseDocumentFile]))}
+            <div className="space-y-6">
+              {renderDocumentGrid(Object.keys(documents), documentInfo)}
             </div>
           </TabsContent>
           
@@ -402,11 +470,11 @@ function ApplicationDocuments({ onDocumentsChange, isSubmitting }: ApplicationDo
               {/* Standard additional documents */}
               {Object.keys(documentInfo)
                 .filter(key => documentInfo[key as keyof BaseDocumentFile].category === 'additional')
-                .map((key) => renderDocumentItem(key, documentInfo[key as keyof BaseDocumentFile]))}
+                .map((key) => renderDocumentGrid([key], { [key]: documentInfo[key as keyof BaseDocumentFile] }))}
                 
               {/* Custom documents */}
               {customDocuments.map(key => (
-                renderDocumentItem(key, customDocumentInfo[key], true)
+                renderDocumentGrid([key], { [key]: customDocumentInfo[key] }, true)
               ))}
               
               {/* Add document button */}
@@ -466,12 +534,26 @@ function ApplicationDocuments({ onDocumentsChange, isSubmitting }: ApplicationDo
             <Button variant="outline" onClick={() => setIsAddDocumentOpen(false)}>
               Cancel
             </Button>
-            <Button onClick={handleAddDocument}>
+            <Button onClick={() => {
+              // Handle adding new document
+            }}>
               Add Document
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      {/* Zip DocumentPreview Modal */}
+      {zipPreviewFile && (
+        <DocumentPreview
+          documentTitle={zipPreviewFile.title}
+          documentUrl={zipPreviewFile.blobUrl}
+          onClose={() => {
+            URL.revokeObjectURL(zipPreviewFile.blobUrl);
+            setZipPreviewFile(null);
+          }}
+          showActions={false}
+        />
+      )}
     </Card>
   );
 }

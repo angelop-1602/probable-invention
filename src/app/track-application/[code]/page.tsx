@@ -18,7 +18,6 @@ export default function TrackApplicationPage({ params }: { params: Promise<{ cod
       />
       <ApplicationTracker
         applicationCode={applicationCode}
-        userEmail={undefined}
       />
     </div>
   );

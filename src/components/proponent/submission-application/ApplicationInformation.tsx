@@ -17,25 +17,29 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Plus, X } from "lucide-react";
+import { ApplicationFormValues } from "@/types/protocol-application/submission";
 
 // Schema for the main form
 const applicationSchema = z.object({
   principalInvestigator: z.string().min(2, "Principal Investigator name is required"),
-  researchTitle: z.string().min(5, "Research title is required"),
   adviser: z.string().min(2, "Adviser name is required"),
   courseProgram: z.string().min(2, "Course/Program is required"),
-  email: z.string().email("Invalid email address"),
+  fundingType: z.enum(["Researcher-funded", "Institution-funded", "Agency-funded", "Pharmaceutical-funded", "Other"]),
+  researchType: z.enum(["Experimental", "Social/Behavioral"]),
+  researchTitle: z.string().min(5, "Research title is required"),
+  proponentName: z.string().min(2, "Proponent name is required"),
+  proponentEmail: z.string().email("Invalid email address"),
+  proponentAdvisor: z.string().min(2, "Proponent advisor is required"),
+  proponentCourseProgram: z.string().min(2, "Proponent course/program is required"),
+  notificationEmail: z.boolean(),
+  notificationSms: z.boolean(),
+  faqAcknowledged: z.boolean(),
 });
 
-type ApplicationFormValues = z.infer<typeof applicationSchema>;
-
-// Extended form values with co-researchers
-interface ExtendedApplicationFormValues extends ApplicationFormValues {
-  coResearchers: string[];
-}
+type FormSchemaType = z.infer<typeof applicationSchema>;
 
 interface ApplicationInformationProps {
-  onFormDataChange: (data: ExtendedApplicationFormValues) => void;
+  onFormDataChange: (data: ApplicationFormValues) => void;
   isSubmitting: boolean;
 }
 
@@ -43,26 +47,36 @@ function ApplicationInformation({ onFormDataChange, isSubmitting }: ApplicationI
   // Track co-researchers in a separate state
   const [coResearchers, setCoResearchers] = useState<string[]>([]);
   
-  const form = useForm<ApplicationFormValues>({
+  const form = useForm<FormSchemaType>({
     resolver: zodResolver(applicationSchema),
     defaultValues: {
       principalInvestigator: "",
-      researchTitle: "",
       adviser: "",
       courseProgram: "",
-      email: "",
+      fundingType: "Researcher-funded",
+      researchType: "Experimental",
+      researchTitle: "",
+      proponentName: "",
+      proponentEmail: "",
+      proponentAdvisor: "",
+      proponentCourseProgram: "",
+      notificationEmail: true,
+      notificationSms: false,
+      faqAcknowledged: false,
     },
   });
 
   // Update parent component with form values
   React.useEffect(() => {
     const subscription = form.watch((data) => {
+      if (data && !Array.isArray(data)) {
       // Combine form data with co-researchers
-      const extendedData: ExtendedApplicationFormValues = {
-        ...data as ApplicationFormValues,
+        const formData: ApplicationFormValues = {
+          ...data as FormSchemaType,
         coResearchers
       };
-      onFormDataChange(extendedData);
+        onFormDataChange(formData);
+      }
     });
     
     return () => subscription.unsubscribe();
@@ -210,7 +224,7 @@ function ApplicationInformation({ onFormDataChange, isSubmitting }: ApplicationI
 
             <FormField
               control={form.control}
-              name="email"
+              name="proponentEmail"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Email Address</FormLabel>

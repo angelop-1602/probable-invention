@@ -281,6 +281,6 @@ export default function RecChairLayout({
     );
   }
 
-  // Return nothing while redirecting
+  // Fallback - should not reach here
   return null;
 }

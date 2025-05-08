@@ -2,13 +2,14 @@
 
 import { useState, useEffect } from "react";
 import { doc, updateDoc } from "firebase/firestore";
-import { db } from "@/lib/firebase-service";
-import { generateSpupRecCode } from "@/lib/application-utils";
+import { db } from "@/lib/firebase";
+import { generateSpupRecCode } from "@/lib/application";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loader2, Pencil } from "lucide-react";
+import { useToast } from "@/components/ui/use-toast";
 
 interface SpupRecCodeAssignmentProps {
   applicationId?: string;
@@ -17,6 +18,20 @@ interface SpupRecCodeAssignmentProps {
   currentCode?: string;
   isFirstView?: boolean;
   onCodeSaved: (code: string) => void;
+}
+
+// Add toast helper functions at the top of the file
+// Helper functions to prevent accidental rendering of toast returns
+function showSuccessToast(toastFn: any, title: string, description: string) {
+  toastFn.success(title, {
+    description,
+  });
+}
+
+function showErrorToast(toastFn: any, title: string, description: string) {
+  toastFn.error(title, {
+    description,
+  });
 }
 
 export function SpupRecCodeAssignment({
@@ -31,6 +46,7 @@ export function SpupRecCodeAssignment({
   const [spupRecCode, setSpupRecCode] = useState(currentCode);
   const [generatingCode, setGeneratingCode] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const { toast } = useToast();
 
   // Load default SPUP REC code when in first view mode
   useEffect(() => {
@@ -57,7 +73,7 @@ export function SpupRecCodeAssignment({
   // Save SPUP REC code to the database
   const handleSaveSpupRecCode = async () => {
     if (!spupRecCode.trim()) {
-      alert("Please enter a valid SPUP REC Code");
+      showErrorToast(toast, "Invalid SPUP REC Code", "Please enter a valid SPUP REC Code");
       return;
     }
 
@@ -82,9 +98,11 @@ export function SpupRecCodeAssignment({
 
       // Exit editing mode
       setIsEditing(false);
+      
+      showSuccessToast(toast, "SPUP REC Code saved", "The SPUP REC Code has been successfully assigned");
     } catch (error) {
       console.error("Error saving SPUP REC code:", error);
-      alert("Failed to save SPUP REC code. Please try again.");
+      showErrorToast(toast, "Error saving SPUP REC code", "Failed to save SPUP REC code. Please try again.");
     } finally {
       setIsSaving(false);
     }

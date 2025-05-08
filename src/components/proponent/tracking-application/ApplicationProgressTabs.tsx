@@ -183,34 +183,33 @@ export const ApplicationProgressTabs = ({ application }: ApplicationProgressTabs
       <Separator />
       <CardContent>
         <Tabs defaultValue="initial-review">
-          <TabsList className="grid grid-cols-3 md:grid-cols-6">
+          <TabsList className="grid grid-cols-3 md:grid-cols-5">
             <TabsTrigger value="initial-review">Initial Review</TabsTrigger>
             <TabsTrigger value="resubmission">Resubmission</TabsTrigger>
             <TabsTrigger value="approval">Approval</TabsTrigger>
             <TabsTrigger value="progress-report" className="hidden md:flex">Progress Report</TabsTrigger>
             <TabsTrigger value="final-report" className="hidden md:flex">Final Report</TabsTrigger>
-            <TabsTrigger value="archiving" className="hidden md:flex">Archiving</TabsTrigger>
           </TabsList>
 
           {/* Initial Review Tab */}
           <TabsContent value="initial-review">
             <div className="space-y-4 p-4">
               <h3 className="font-semibold">Initial Review Status</h3>
-              {application.initialReview.date ? (
+              {application.initialReview?.date ? (
                 <div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <h4 className="text-sm font-medium text-gray-500">Review Date</h4>
-                      <p>{new Date(application.initialReview.date).toLocaleDateString()}</p>
+                      <p>{application.initialReview?.date ? new Date(application.initialReview.date).toLocaleDateString() : "N/A"}</p>
                     </div>
                     <div>
                       <h4 className="text-sm font-medium text-gray-500">Decision</h4>
-                      <p>{application.initialReview.decision}</p>
+                      <p>{application.initialReview?.decision || "N/A"}</p>
                     </div>
                   </div>
                   
                   {/* Display reviewer feedback if available */}
-                  {application.initialReview.feedback && (
+                  {application.initialReview?.feedback && (
                     <div className="mt-4">
                       <h4 className="text-sm font-medium text-gray-500">Reviewer Feedback</h4>
                       <div className="mt-2 p-4 bg-gray-50 border rounded-md">
@@ -219,7 +218,7 @@ export const ApplicationProgressTabs = ({ application }: ApplicationProgressTabs
                     </div>
                   )}
                   
-                  {application.initialReview.decision === "Minor Modifications Required" && (
+                  {application.initialReview?.decision === "Minor Modifications Required" && (
                     <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-md">
                       <h4 className="font-medium flex items-center text-amber-700">
                         <AlertCircle className="h-4 w-4 mr-2" />
@@ -249,12 +248,12 @@ export const ApplicationProgressTabs = ({ application }: ApplicationProgressTabs
           <TabsContent value="approval">
             <div className="space-y-4 p-4">
               <h3 className="font-semibold">Approval Status</h3>
-              {application.approved.date ? (
+              {application.approved?.date ? (
                 <div className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <h4 className="text-sm font-medium text-gray-500">Approval Date</h4>
-                      <p>{new Date(application.approved.date).toLocaleDateString()}</p>
+                      <p>{application.approved?.date ? new Date(application.approved.date).toLocaleDateString() : "N/A"}</p>
                     </div>
                   </div>
                   <div className="p-3 bg-green-50 border border-green-200 rounded-md">
@@ -267,7 +266,7 @@ export const ApplicationProgressTabs = ({ application }: ApplicationProgressTabs
                       Please remember to submit progress reports as required.
                     </p>
                     <div className="mt-3">
-                      <Button variant="outline" size="sm" disabled={!application.approved.certificateUrl}>
+                      <Button variant="outline" size="sm" disabled={!application.approved?.certificateUrl}>
                         <Download className="h-4 w-4 mr-2" /> Download Certificate of Approval
                       </Button>
                     </div>
@@ -285,13 +284,13 @@ export const ApplicationProgressTabs = ({ application }: ApplicationProgressTabs
           <TabsContent value="progress-report">
             <div className="space-y-4 p-4">
               <h3 className="font-semibold">Progress Report</h3>
-              {application.progressReport.date ? (
+              {application.progressReport?.date ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <h4 className="text-sm font-medium text-gray-500">Submission Date</h4>
-                    <p>{new Date(application.progressReport.date).toLocaleDateString()}</p>
+                    <p>{application.progressReport?.date ? new Date(application.progressReport.date).toLocaleDateString() : "N/A"}</p>
                   </div>
-                  {application.progressReport.submissionCount && (
+                  {application.progressReport?.submissionCount && (
                     <div>
                       <h4 className="text-sm font-medium text-gray-500">Submissions Count</h4>
                       <p>{application.progressReport.submissionCount}</p>
@@ -301,7 +300,7 @@ export const ApplicationProgressTabs = ({ application }: ApplicationProgressTabs
                     <h4 className="text-sm font-medium text-gray-500">Status</h4>
                     <p>Submitted</p>
                   </div>
-                  {application.progressReport.lastReportUrl && (
+                  {application.progressReport?.lastReportUrl && (
                     <div className="md:col-span-2">
                       <Button variant="outline" size="sm" onClick={() => window.open(application.progressReport.lastReportUrl)}>
                         <Download className="h-4 w-4 mr-2" /> Download Last Progress Report
@@ -320,14 +319,14 @@ export const ApplicationProgressTabs = ({ application }: ApplicationProgressTabs
                       <div>
                         <label className="block text-sm font-medium mb-1">Form 09B: Progress Report Form</label>
                         <div className="flex items-center gap-2">
-                          <Button variant="outline" size="sm" disabled={!application.approved.date}>
+                          <Button variant="outline" size="sm" disabled={!application.approved?.date}>
                             <Download className="h-4 w-4 mr-2" /> Download Template
                           </Button>
                           <Input 
                             type="file" 
                             id="progress-report-form" 
                             className="max-w-xs" 
-                            disabled={!application.approved.date} 
+                            disabled={!application.approved?.date} 
                             accept=".pdf"
                             onChange={(e) => validateFileUpload(e, "progress-report-form")}
                           />
@@ -350,7 +349,7 @@ export const ApplicationProgressTabs = ({ application }: ApplicationProgressTabs
                               <Input 
                                 type="file" 
                                 className="max-w-xs" 
-                                disabled={!application.approved.date} 
+                                disabled={!application.approved?.date} 
                                 accept=".pdf"
                                 id={`progress-doc-${index}`}
                                 onChange={(e) => validateFileUpload(e, `progress-doc-${index}`)}
@@ -359,7 +358,7 @@ export const ApplicationProgressTabs = ({ application }: ApplicationProgressTabs
                                 <Button 
                                   variant="outline" 
                                   size="sm" 
-                                  disabled={!application.approved.date}
+                                  disabled={!application.approved?.date}
                                   onClick={() => addDocumentField('progress')}
                                 >
                                   <Plus className="h-4 w-4" />
@@ -368,7 +367,7 @@ export const ApplicationProgressTabs = ({ application }: ApplicationProgressTabs
                                 <Button 
                                   variant="outline" 
                                   size="sm" 
-                                  disabled={!application.approved.date}
+                                  disabled={!application.approved?.date}
                                   onClick={() => removeDocumentField('progress', index)}
                                 >
                                   <Trash2 className="h-4 w-4" />
@@ -389,7 +388,7 @@ export const ApplicationProgressTabs = ({ application }: ApplicationProgressTabs
                         </div>
                       </div>
                       
-                      <Button disabled={!application.approved.date}>
+                      <Button disabled={!application.approved?.date}>
                         <Upload className="h-4 w-4 mr-2" /> Submit Progress Report
                       </Button>
                     </div>
@@ -403,17 +402,17 @@ export const ApplicationProgressTabs = ({ application }: ApplicationProgressTabs
           <TabsContent value="final-report">
             <div className="space-y-4 p-4">
               <h3 className="font-semibold">Final Report</h3>
-              {application.finalReport.date ? (
+              {application.finalReport?.date ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <h4 className="text-sm font-medium text-gray-500">Submission Date</h4>
-                    <p>{new Date(application.finalReport.date).toLocaleDateString()}</p>
+                    <p>{application.finalReport?.date ? new Date(application.finalReport.date).toLocaleDateString() : "N/A"}</p>
                   </div>
                   <div>
                     <h4 className="text-sm font-medium text-gray-500">Status</h4>
                     <p>Submitted</p>
                   </div>
-                  {application.finalReport.reportUrl && (
+                  {application.finalReport?.reportUrl && (
                     <div className="md:col-span-2">
                       <Button variant="outline" size="sm" onClick={() => window.open(application.finalReport.reportUrl)}>
                         <Download className="h-4 w-4 mr-2" /> Download Final Report
@@ -432,14 +431,14 @@ export const ApplicationProgressTabs = ({ application }: ApplicationProgressTabs
                       <div>
                         <label className="block text-sm font-medium mb-1">Form 14A: Final Report Form</label>
                         <div className="flex items-center gap-2">
-                          <Button variant="outline" size="sm" disabled={!application.approved.date}>
+                          <Button variant="outline" size="sm" disabled={!application.approved?.date}>
                             <Download className="h-4 w-4 mr-2" /> Download Template
                           </Button>
                           <Input 
                             type="file" 
                             id="final-report-form" 
                             className="max-w-xs" 
-                            disabled={!application.approved.date} 
+                            disabled={!application.approved?.date} 
                             accept=".pdf"
                             onChange={(e) => validateFileUpload(e, "final-report-form")}
                           />
@@ -462,7 +461,7 @@ export const ApplicationProgressTabs = ({ application }: ApplicationProgressTabs
                               <Input 
                                 type="file" 
                                 className="max-w-xs" 
-                                disabled={!application.approved.date} 
+                                disabled={!application.approved?.date} 
                                 accept=".pdf"
                                 id={`final-doc-${index}`}
                                 onChange={(e) => validateFileUpload(e, `final-doc-${index}`)}
@@ -471,7 +470,7 @@ export const ApplicationProgressTabs = ({ application }: ApplicationProgressTabs
                                 <Button 
                                   variant="outline" 
                                   size="sm" 
-                                  disabled={!application.approved.date}
+                                  disabled={!application.approved?.date}
                                   onClick={() => addDocumentField('final')}
                                 >
                                   <Plus className="h-4 w-4" />
@@ -480,7 +479,7 @@ export const ApplicationProgressTabs = ({ application }: ApplicationProgressTabs
                                 <Button 
                                   variant="outline" 
                                   size="sm" 
-                                  disabled={!application.approved.date}
+                                  disabled={!application.approved?.date}
                                   onClick={() => removeDocumentField('final', index)}
                                 >
                                   <Trash2 className="h-4 w-4" />
@@ -501,39 +500,12 @@ export const ApplicationProgressTabs = ({ application }: ApplicationProgressTabs
                         </div>
                       </div>
                       
-                      <Button disabled={!application.approved.date}>
+                      <Button disabled={!application.approved?.date}>
                         <Upload className="h-4 w-4 mr-2" /> Submit Final Report
                       </Button>
                     </div>
                   </div>
                 </div>
-              )}
-            </div>
-          </TabsContent>
-
-          {/* Archiving Tab */}
-          <TabsContent value="archiving">
-            <div className="space-y-4 p-4">
-              <h3 className="font-semibold">Archiving Status</h3>
-              {application.archiving.date ? (
-                <div className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <h4 className="text-sm font-medium text-gray-500">Archiving Date</h4>
-                      <p>{new Date(application.archiving.date).toLocaleDateString()}</p>
-                    </div>
-                  </div>
-                  <div className="p-3 bg-blue-50 border border-blue-200 rounded-md">
-                    <h4 className="font-medium text-blue-700">Your Protocol Has Been Archived</h4>
-                    <p className="text-sm mt-1">
-                      Your protocol has been successfully completed and archived. Thank you for your contribution to research.
-                    </p>
-                  </div>
-                </div>
-              ) : (
-                <p className="text-gray-500">
-                  Your application has not yet been archived. This will occur after the final report is approved.
-                </p>
               )}
             </div>
           </TabsContent>

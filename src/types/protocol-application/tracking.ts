@@ -70,6 +70,7 @@ export interface DateRecord {
   reportUrl?: string; // URL to download reports
   submissionCount?: number; // Count of reports submitted (for progress reports)
   lastReportUrl?: string; // URL to the last report submitted
+  notificationUrl?: string; // URL to notification documents
 }
 
 /**

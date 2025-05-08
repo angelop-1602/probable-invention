@@ -1,9 +1,9 @@
 // This is a custom hook to use the toast functionality from sonner
-import { toast, type ExternalToast } from "sonner";
+import { toast as sonnerToast, type ExternalToast } from "sonner";
 
 // Define the return type of the hook
 export interface UseToastReturn {
-  toast: typeof toast;
+  toast: typeof sonnerToast;
   dismiss: (toastId?: string | number) => void;
 }
 
@@ -15,8 +15,8 @@ export type ToastProps = ExternalToast & {
 
 export function useToast(): UseToastReturn {
   return {
-    toast,
-    dismiss: toast.dismiss,
+    toast: sonnerToast,
+    dismiss: sonnerToast.dismiss,
   };
 }
 

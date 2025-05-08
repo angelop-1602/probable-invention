@@ -35,7 +35,9 @@ import {
 import { Trash2Icon, Eye } from "lucide-react";
 import { doc, updateDoc, deleteDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { invalidateReviewersCache, Reviewer } from "@/lib/reviewers";
+import { Reviewer } from "@/types/protocol-application/utils";
+import { ReviewersService } from "@/lib/reviewers/reviewers.service";
+import { formatDate } from "@/lib/application/application.utils";
 
 const SPECIALIZATIONS = [
   "Natural Science",
@@ -110,13 +112,13 @@ export function ViewReviewerDialog({ reviewer, onReviewerUpdated }: ViewReviewer
         updatedAt: serverTimestamp()
       });
 
-      // Invalidate cache
-      invalidateReviewersCache();
+      // Set success message
+      setSuccess("Reviewer details updated successfully.");
       
-      // Show success message
-      setSuccess("Reviewer updated successfully!");
+      // Invalidate reviewers cache after successful update
+      ReviewersService.getInstance().invalidateReviewersCache();
 
-      // Call the callback if provided
+      // Call the callback
       if (onReviewerUpdated) {
         onReviewerUpdated();
       }
@@ -159,7 +161,7 @@ export function ViewReviewerDialog({ reviewer, onReviewerUpdated }: ViewReviewer
       setIsActive(false);
       
       // Invalidate cache
-      invalidateReviewersCache();
+      ReviewersService.getInstance().invalidateReviewersCache();
       
       // Show success message
       setSuccess("Reviewer deactivated successfully!");
@@ -200,7 +202,7 @@ export function ViewReviewerDialog({ reviewer, onReviewerUpdated }: ViewReviewer
       await deleteDoc(reviewerRef);
 
       // Invalidate cache
-      invalidateReviewersCache();
+      ReviewersService.getInstance().invalidateReviewersCache();
       
       // Show success message before closing
       setSuccess("Reviewer deleted successfully!");
@@ -222,47 +224,6 @@ export function ViewReviewerDialog({ reviewer, onReviewerUpdated }: ViewReviewer
       setError(err.message || "Failed to delete reviewer. Please try again.");
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  // Format date for display
-  const formatDate = (timestamp: any) => {
-    if (!timestamp) return "N/A";
-    
-    try {
-      // Handle Firestore timestamp
-      if (typeof timestamp === 'object' && timestamp.toDate && typeof timestamp.toDate === 'function') {
-        return timestamp.toDate().toLocaleDateString();
-      }
-      
-      // Handle milliseconds number
-      if (typeof timestamp === 'number') {
-        return new Date(timestamp).toLocaleDateString();
-      }
-      
-      // Handle ISO string or any parsable date string
-      if (typeof timestamp === 'string') {
-        const date = new Date(timestamp);
-        if (!isNaN(date.getTime())) {
-          return date.toLocaleDateString();
-        }
-      }
-      
-      // Handle Date object
-      if (timestamp instanceof Date) {
-        return timestamp.toLocaleDateString();
-      }
-
-      // Handle Firebase server timestamp object that might be in a different format
-      if (typeof timestamp === 'object' && timestamp.seconds) {
-        return new Date(timestamp.seconds * 1000).toLocaleDateString();
-      }
-      
-      // If none of the above, return the original value as string
-      return String(timestamp);
-    } catch (error) {
-      console.error("Error formatting date:", error, timestamp);
-      return "Invalid Date";
     }
   };
 

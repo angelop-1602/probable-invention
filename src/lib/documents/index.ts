@@ -1,0 +1,1 @@
+export type { SubcollectionDocument } from '../../types/protocol-application/documents'; 

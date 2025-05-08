@@ -16,6 +16,7 @@ interface FileUploaderProps extends React.HTMLAttributes<HTMLDivElement> {
   onFilesSelected?: (files: File[]) => void
   required?: boolean
   label?: string
+  disabled?: boolean
 }
 
 export function FileUploader({
@@ -26,6 +27,7 @@ export function FileUploader({
   onFilesSelected,
   required = false,
   label,
+  disabled = false,
   ...props
 }: FileUploaderProps) {
   const [files, setFiles] = useState<File[]>([])
@@ -33,15 +35,17 @@ export function FileUploader({
 
   const onDrop = useCallback(
     (acceptedFiles: FileWithPath[]) => {
+      if (disabled) return;
       const newFiles = multiple ? [...files, ...acceptedFiles] : acceptedFiles;
       setFiles(newFiles)
       onFilesSelected?.(newFiles)
       setIsDragging(false)
     },
-    [files, multiple, onFilesSelected]
+    [files, multiple, onFilesSelected, disabled]
   )
 
   const removeFile = (index: number) => {
+    if (disabled) return;
     const newFiles = [...files];
     newFiles.splice(index, 1);
     setFiles(newFiles);
@@ -52,8 +56,9 @@ export function FileUploader({
     onDrop,
     accept,
     multiple,
-    onDragEnter: () => setIsDragging(true),
-    onDragLeave: () => setIsDragging(false),
+    onDragEnter: () => !disabled && setIsDragging(true),
+    onDragLeave: () => !disabled && setIsDragging(false),
+    disabled,
   })
 
   // Get file icon based on type
@@ -81,10 +86,11 @@ export function FileUploader({
             ? 'border-primary/70 bg-primary/5 shadow-sm' 
             : 'border-muted-foreground/20 bg-muted/30 hover:bg-muted/50',
           files.length > 0 && !isDragActive ? 'border-green-500/40 bg-green-50/30 dark:bg-green-950/10' : '',
-          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2'
+          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
+          disabled ? 'opacity-60 pointer-events-none' : ''
         )}
       >
-        <input {...getInputProps({ id })} />
+        <input {...getInputProps({ id, disabled })} />
         <div className="flex flex-col items-center justify-center p-6 text-center">
           <div className={cn(
             'rounded-full p-3 mb-3',

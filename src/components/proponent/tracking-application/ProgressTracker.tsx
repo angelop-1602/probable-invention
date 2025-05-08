@@ -4,6 +4,7 @@ import { ProgressStatus, ApplicationStatus } from "@/types/protocol-application/
 import { Separator } from "@/components/ui/separator";
 import { CheckCircle, Clock, AlertCircle } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useDocumentApproval } from "@/hooks/application/useDocumentApproval";
 
 // Progress info mapping for display
 const progressInfo: Record<string, { name: string; description: string }> = {
@@ -53,86 +54,14 @@ const getProgressPercentage = (progress: ProgressStatus | "PENDING"): string => 
   return `${Math.floor((adjustedIndex / (meaningfulSteps - 1)) * 100)}%`;
 };
 
-interface DocumentData {
-  displayName?: string;
-  displayTitle?: string;
-  documentId?: string;
-  documentType?: string;
-  fileName?: string;
-  status?: string;
-  storagePath?: string;
-  timestamp?: any;
-  version?: string;
-}
-
-interface ApplicationData {
-  applicationCode?: string;
-  progress?: string;
-  decision?: string;
-  documents?: DocumentData[];
-  reviewProgress?: {
-    approved?: boolean;
-    reviewType?: string;
-    status?: string;
-  };
-  form07A?: DocumentData[];
-  form07B?: DocumentData[];
-  form07C?: DocumentData[];
-  researchProposal?: DocumentData[];
-  minutesOfProposalDefense?: DocumentData[];
-  questionnaires?: DocumentData[];
-  curriculumVitae?: DocumentData[];
-  abstract?: DocumentData[];
-  [key: string]: any; // Allow for any other document type
-}
-
 interface ProgressTrackerProps {
   progress?: ProgressStatus;
   status?: ApplicationStatus | string;
   comments?: string;
   documentRequests?: string[];
   fulfilledDocuments?: string[];
-  applicationData?: ApplicationData;
+  applicationData?: any;
 }
-
-// Check if all required documents are present and approved
-const areDocumentsApproved = (applicationData?: ApplicationData): boolean => {
-  if (!applicationData) return false;
-
-  // Check documents array if it exists
-  if (applicationData.documents && applicationData.documents.length > 0) {
-    // Check if all documents have approved status
-    const allApproved = applicationData.documents.every(
-      doc => doc.status === 'Accepted' || doc.status === 'approved'
-    );
-    
-    // If specific document types aren't in the documents array, this is a sufficient check
-    if (allApproved && applicationData.documents.length >= REQUIRED_DOCUMENTS.length) {
-      return true;
-    }
-  }
-  
-  // Check each document type directly if available
-  return REQUIRED_DOCUMENTS.every(docType => {
-    // Check if this document type exists in the application data
-    const docs = applicationData[docType] as DocumentData[] | undefined;
-    
-    // If document type array doesn't exist, check if it might be in documents array instead
-    if (!docs || docs.length === 0) {
-      if (applicationData.documents) {
-        return applicationData.documents.some(
-          doc => doc.documentType === docType && 
-                (doc.status === 'Accepted' || doc.status === 'approved')
-        );
-      }
-      return false;
-    }
-    
-    // If document type array exists, check the most recent one (assuming sorted by timestamp)
-    const latestDoc = docs[docs.length - 1];
-    return latestDoc && (latestDoc.status === 'Accepted' || latestDoc.status === 'approved');
-  });
-};
 
 // Map application statuses to progress steps
 const mapStatusToProgress = (status: ApplicationStatus | string): ProgressStatus | "PENDING" => {
@@ -183,12 +112,7 @@ export const ProgressTracker = ({
   applicationData
 }: ProgressTrackerProps) => {
   const [currentProgress, setCurrentProgress] = useState<ProgressStatus | "PENDING">("PENDING");
-  const [docsApproved, setDocsApproved] = useState(false);
-  
-  // Check document approval status
-  useEffect(() => {
-    setDocsApproved(areDocumentsApproved(applicationData));
-  }, [applicationData]);
+  const { isApproved, isChecking } = useDocumentApproval(applicationData);
   
   // Update currentProgress based on props
   useEffect(() => {
@@ -218,14 +142,14 @@ export const ProgressTracker = ({
         setCurrentProgress(mapStatusToProgress(status));
       } 
       // Set to SC if documents are approved but no other status is set
-      else if (docsApproved && applicationData.applicationCode) {
+      else if (isApproved && applicationData.applicationCode) {
         setCurrentProgress("SC");
       }
     } else if (status) {
       // Fall back to just the status prop
       setCurrentProgress(mapStatusToProgress(status));
     }
-  }, [progress, status, applicationData, docsApproved]);
+  }, [progress, status, applicationData, isApproved]);
 
   // Array of all progress steps
   const progressSteps: (ProgressStatus | "PENDING")[] = ["PENDING", "SC", "IR", "RS", "AP", "PR", "FR", "AR"];
@@ -236,7 +160,7 @@ export const ProgressTracker = ({
   );
 
   // Check if documents need attention (show indicator if not approved)
-  const documentsNeedAttention = applicationData && !docsApproved;
+  const documentsNeedAttention = applicationData && !isApproved && !isChecking;
 
   return (
     <Card>

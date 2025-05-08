@@ -10,7 +10,7 @@ import {
 } from "../../ui/table";
 import { Badge } from "../../ui/badge";
 import { Button } from "../../ui/button";
-import { 
+import {
     Pagination,
     PaginationContent,
     PaginationEllipsis,
@@ -22,9 +22,9 @@ import {
 import { useState } from "react";
 import Link from "next/link";
 import { ApplicationsTableProps } from "@/types/rec-chair";
-import { formatDate } from "@/lib/rec-chair/utils";
+import { formatDate } from "@/lib/application/application.utils";
 
-export function ApplicationsTable({ 
+export function ApplicationsTable({
     title,
     caption = "A list of recent submission of protocol review applications",
     data = [],
@@ -65,7 +65,7 @@ export function ApplicationsTable({
         if (hidePagination) {
             return data;
         }
-        
+
         const startIndex = (currentPage - 1) * itemsPerPage;
         const endIndex = startIndex + itemsPerPage;
         return data.slice(startIndex, endIndex);
@@ -74,11 +74,16 @@ export function ApplicationsTable({
     // Render table rows
     const renderTableRows = () => {
         const currentPageData = getCurrentPageData();
-        
+
         if (currentPageData.length > 0) {
             return currentPageData.map((application, index) => (
                 <TableRow key={index}>
-                    <TableCell>{application.spupRecCode || "Not Assigned"}</TableCell>
+                    <TableCell>
+                        {(application.status?.toLowerCase() === "submission check" || application.status?.toLowerCase() === "under review" || application.status?.toLowerCase() === "approved") && application.spupRecCode?.trim()
+                            ? application.spupRecCode
+                            : "Not Assigned"}
+                    </TableCell>
+
                     <TableCell>{application.principalInvestigator}</TableCell>
                     <TableCell>{formatDate(application.submissionDate)}</TableCell>
                     <TableCell>{application.title}</TableCell>
@@ -126,13 +131,13 @@ export function ApplicationsTable({
                     {renderTableRows()}
                 </TableBody>
             </Table>
-            
+
             {shouldShowPagination && (
                 <div className="mt-6">
                     <Pagination>
                         <PaginationContent>
                             <PaginationItem>
-                                <PaginationPrevious 
+                                <PaginationPrevious
                                     size="default"
                                     onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
                                     className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
@@ -143,7 +148,7 @@ export function ApplicationsTable({
                                 const pageNum = i + 1;
                                 return (
                                     <PaginationItem key={i}>
-                                        <PaginationLink 
+                                        <PaginationLink
                                             size="default"
                                             onClick={() => handlePageChange(pageNum)}
                                             isActive={currentPage === pageNum}
@@ -172,7 +177,7 @@ export function ApplicationsTable({
                             )}
 
                             <PaginationItem>
-                                <PaginationNext 
+                                <PaginationNext
                                     size="default"
                                     onClick={() => handlePageChange(Math.min(totalPages, currentPage + 1))}
                                     className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""}

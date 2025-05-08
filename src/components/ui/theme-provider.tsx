@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { createContext, useContext, useEffect, useState } from "react";
-import { themeColors } from "@/lib/theme-utils";
+import { themeColors } from "@/lib/theme";
 
 type ThemeProviderProps = {
   children: React.ReactNode;

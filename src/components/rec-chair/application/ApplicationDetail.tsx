@@ -5,6 +5,7 @@ import { SpupRecCodeAssignment } from "./SpupRecCodeAssignment";
 import { ProtocolDocumentList } from "./ProtocolDocumentList";
 import { ProtocolInformation } from "./ProtocolInformation";
 import { ReviewersList } from "./ReviewersList";
+import { RecChairApplicationChat } from "./RecChairApplicationChat";
 import { Application, Reviewer } from "@/types/rec-chair";
 
 interface ApplicationDetailProps {
@@ -53,10 +54,11 @@ export function ApplicationDetail({
     }
   };
 
-  // If this is the first view and no SPUP REC code assigned, only show the code assignment and basic details
-  if (isFirstView && !application.spupRecCode) {
+  // If no SPUP REC code assigned, only show the code assignment and basic details
+  if (!application.spupRecCode) {
     return (
       <div className="space-y-6">
+        <h2 className="text-2xl font-bold mb-2">{application.title || "Untitled Protocol"}</h2>
         <SpupRecCodeAssignment
           applicationId={application.id}
           principalInvestigator={application.principalInvestigator}
@@ -70,48 +72,53 @@ export function ApplicationDetail({
           application={application}
           onStatusUpdated={handleStatusUpdated}
         />
+        <ProtocolDocumentList
+          application={application}
+          onUpdateApplication={onUpdateApplication}
+        />
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      {!isFirstView && (
-        <div className="mb-6">
-          <h2 className="text-2xl font-bold mb-2">{application.title || "Untitled Protocol"}</h2>
-          <div>
-                <StatusBadge status={application.progress || "SC"} />
-          </div>
-          <SpupRecCodeAssignment
-            applicationId={application.id}
-            principalInvestigator={application.principalInvestigator}
-            researchType={application.researchType}
-            currentCode={application.spupRecCode}
-            isFirstView={false}
-            onCodeSaved={handleCodeSaved}
-          />
+      <div className="mb-6">
+        <h2 className="text-2xl font-bold mb-2">{application.title || "Untitled Protocol"}</h2>
+        <div>
         </div>
-      )}
+        <SpupRecCodeAssignment
+          applicationId={application.id}
+          principalInvestigator={application.principalInvestigator}
+          researchType={application.researchType}
+          currentCode={application.spupRecCode}
+          isFirstView={false}
+          onCodeSaved={handleCodeSaved}
+        />
+      </div>
 
-
-
-      <div className="grid grid-cols-1 gap-6">
+      {/* Display ProtocolInformation and ProtocolDocumentList side by side */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <ProtocolInformation
           application={application}
           onStatusUpdated={handleStatusUpdated}
         />
-
-        <ProtocolDocumentList
-          application={application}
-          onUpdateApplication={onUpdateApplication}
-        />
-
         <ReviewersList
           application={application}
           reviewers={reviewers}
           onUpdateApplication={onUpdateApplication}
         />
       </div>
-    </div>
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div className="col-span-12 lg:col-span-8">
+          <ProtocolDocumentList
+            application={application}
+            onUpdateApplication={onUpdateApplication}
+          />
+        </div>
+        <div className="col-span-12 lg:col-span-4">
+          <RecChairApplicationChat application={application} />
+        </div>
+      </div>
+    </div >
   );
 } 

@@ -13,20 +13,41 @@ import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { AddCommentDialog } from "./AddCommentDialog";
-import { Eye } from "lucide-react";
-import { formatDate } from "@/lib/utils";
+import { Eye, FileText, Download } from "lucide-react";
+import { formatDate } from "@/lib/application/application.utils";
 import { ViewApplicationDialogProps } from "@/types/rec-chair";
+import { DocumentPreview } from "../../shared/DocumentPreview";
 
 export function ViewApplicationDialog({ application, onApplicationUpdated }: ViewApplicationDialogProps) {
   const [open, setOpen] = useState(false);
+  const [isDocumentViewerOpen, setIsDocumentViewerOpen] = useState(false);
+  const [currentDocument, setCurrentDocument] = useState<any>(null);
 
   const handleCommentAdded = () => {
     if (onApplicationUpdated) {
       onApplicationUpdated();
     }
   };
+  
+  // Handle document viewing
+  const handleViewDocument = (doc: any) => {
+    setCurrentDocument(doc);
+    setIsDocumentViewerOpen(true);
+  };
+  
+  // Close document viewer
+  const handleCloseDocumentViewer = () => {
+    setIsDocumentViewerOpen(false);
+    setCurrentDocument(null);
+  };
+  
+  // Get document preview URL using the document service
+  const getDocumentPreviewURL = (document: any) => {
+    return document.downloadLink || document.storagePath;
+  };
 
   return (
+    <>
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button size="sm" variant="default">
@@ -84,6 +105,34 @@ export function ViewApplicationDialog({ application, onApplicationUpdated }: Vie
               </div>
             </CardContent>
           </Card>
+            
+            {/* Documents Section */}
+            {application.documents && application.documents.length > 0 && (
+              <Card>
+                <CardContent className="p-4">
+                  <h3 className="text-md font-medium mb-3">Documents</h3>
+                  <div className="grid grid-cols-1 gap-2">
+                    {application.documents.map((doc: any, index: number) => (
+                      <div key={index} className="flex items-center justify-between p-2 rounded border hover:bg-muted/30">
+                        <div className="flex items-center gap-2">
+                          <FileText className="h-4 w-4 text-primary" />
+                          <span className="text-sm font-medium">
+                            {doc.title || "Untitled Document"}
+                          </span>
+                        </div>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={() => handleViewDocument(doc)}
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
           <div className="flex space-x-2">
             {application.id && <AddCommentDialog applicationId={application.id} onCommentAdded={handleCommentAdded} />}
@@ -91,5 +140,17 @@ export function ViewApplicationDialog({ application, onApplicationUpdated }: Vie
         </div>
       </DialogContent>
     </Dialog>
+      
+      {/* Document Preview */}
+      {isDocumentViewerOpen && currentDocument && (
+        <DocumentPreview
+          documentTitle={currentDocument.title || "Untitled Document"}
+          documentUrl={getDocumentPreviewURL(currentDocument)}
+          storagePath={currentDocument.storagePath}
+          onClose={handleCloseDocumentViewer}
+          showActions={false}
+        />
+      )}
+    </>
   );
 } 

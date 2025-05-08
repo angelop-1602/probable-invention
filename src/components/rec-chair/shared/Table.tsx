@@ -24,6 +24,7 @@ import { useState } from "react";
 import { ViewReviewerDialog } from "../reviewers/ViewReviewerDialog";
 import { Filter } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../ui/select";
+import { formatDate } from "@/lib/application/application.utils";
 
 interface ChairTableProps {
     title?: string;
@@ -101,47 +102,6 @@ export function ChairTable({
     // Render table row content based on the tableType
     const renderTableRows = () => {
         const currentPageData = getCurrentPageData();
-        
-        // Helper function to format dates properly
-        const formatDate = (timestamp: any) => {
-            if (!timestamp) return "N/A";
-            
-            try {
-                // Handle Firestore timestamp
-                if (typeof timestamp === 'object' && timestamp.toDate && typeof timestamp.toDate === 'function') {
-                    return timestamp.toDate().toLocaleDateString();
-                }
-                
-                // Handle milliseconds number
-                if (typeof timestamp === 'number') {
-                    return new Date(timestamp).toLocaleDateString();
-                }
-                
-                // Handle ISO string or any parsable date string
-                if (typeof timestamp === 'string') {
-                    const date = new Date(timestamp);
-                    if (!isNaN(date.getTime())) {
-                        return date.toLocaleDateString();
-                    }
-                }
-                
-                // Handle Date object
-                if (timestamp instanceof Date) {
-                    return timestamp.toLocaleDateString();
-                }
-
-                // Handle Firebase server timestamp object that might be in a different format
-                if (typeof timestamp === 'object' && timestamp.seconds) {
-                    return new Date(timestamp.seconds * 1000).toLocaleDateString();
-                }
-                
-                // If none of the above, return the original value as string
-                return String(timestamp);
-            } catch (error) {
-                console.error("Error formatting date:", error, timestamp);
-                return "Invalid Date";
-            }
-        };
         
         if (currentPageData.length > 0) {
             return currentPageData.map((item, index) => {

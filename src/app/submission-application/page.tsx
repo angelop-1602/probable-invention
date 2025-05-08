@@ -7,39 +7,100 @@ import { SuccessModal } from "@/components/proponent/submission-application/Succ
 import { DuplicateConfirmationModal } from "@/components/proponent/submission-application/DuplicateConfirmationModal";
 import { ProponentHeader } from "@/components/proponent/shared/ProponentHeader";
 import { Button } from "@/components/ui/button";
-import { useSubmitApplication } from "@/hooks/useApplicationData";
+import useApplicationData from '@/hooks/application/useApplicationData';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Loader2, AlertCircle } from "lucide-react";
 import { auth } from "@/lib/firebase";
 import { useRouter } from "next/navigation";
 import { Progress } from "@/components/ui/progress";
+import { filterFilledDocuments } from "@/lib/documents/document-utils";
 import { 
-  ApplicationFormData, 
-  DocumentFiles,
-  DuplicateCheckResult,
-  ExtendedApplicationFormData
+  ExtendedApplicationFormData,
+  ApplicationFormValues
 } from "@/types";
+import type { UseApplicationDataResult } from '@/hooks/application/useApplicationData';
+import type { ApplicationFormData, DocumentFiles, DuplicateCheckResult } from '@/lib/application/application.types';
+
+function toApplicationFormData(formData: ExtendedApplicationFormData): ApplicationFormData {
+  return {
+    principalInvestigator: formData.principalInvestigator,
+    email: formData.proponent.email,
+    adviser: formData.adviser,
+    courseProgram: formData.courseProgram,
+    researchTitle: formData.protocolDetails.researchTitle,
+    _bypassDuplicateCheck: formData._bypassDuplicateCheck,
+    // Add any other flat fields as needed
+  };
+}
 
 export default function SubmissionPage() {
-  const [formData, setFormData] = useState<ExtendedApplicationFormData>({
+  const [formValues, setFormValues] = useState<ApplicationFormValues>({
     principalInvestigator: "",
-    researchTitle: "",
     adviser: "",
     courseProgram: "",
-    email: "",
+    fundingType: "Researcher-funded",
+    researchType: "Experimental",
+    researchTitle: "",
+    proponentName: "",
+    proponentEmail: "",
+    proponentAdvisor: "",
+    proponentCourseProgram: "",
+    notificationEmail: true,
+    notificationSms: false,
+    faqAcknowledged: false,
     coResearchers: [],
   });
 
+  const [formData, setFormData] = useState<ExtendedApplicationFormData>({
+    // Basic Information
+    applicationStatus: "Draft",
+    createdAt: new Date(),
+    updatedAt: new Date(),
+
+    // Principal Investigator Information
+    principalInvestigator: formValues.principalInvestigator,
+    adviser: formValues.adviser,
+    courseProgram: formValues.courseProgram,
+    fundingType: formValues.fundingType,
+    researchType: formValues.researchType,
+
+    // Protocol Details
+    protocolDetails: {
+      researchTitle: formValues.researchTitle,
+    },
+
+    // Proponent Information
+    proponent: {
+      name: formValues.proponentName,
+      email: formValues.proponentEmail,
+      advisor: formValues.proponentAdvisor,
+      courseProgram: formValues.proponentCourseProgram,
+      submissionDate: new Date(),
+    },
+
+    // Notification Preferences
+    notificationPreferences: {
+      email: formValues.notificationEmail,
+      sms: formValues.notificationSms,
+    },
+
+    // Additional Fields
+    faqAcknowledged: formValues.faqAcknowledged,
+
+    // Required for ExtendedApplicationFormData
+    coResearchers: formValues.coResearchers,
+  });
+
   const [documentFiles, setDocumentFiles] = useState<DocumentFiles>({
-    form07A: null,
-    form07B: null,
-    form07C: null,
-    researchProposal: null,
-    minutesOfProposalDefense: null,
-    abstract: null,
-    curriculumVitae: null,
-    questionnaires: null,
-    technicalReview: null,
+    form07A: { files: [], title: "Form 07A: Protocol Review Application Form" },
+    form07B: { files: [], title: "Form 07B: Adviser's Certification Form" },
+    form07C: { files: [], title: "Form 07C: Informed Consent Template" },
+    researchProposal: { files: [], title: "Research Proposal/Study Protocol" },
+    minutesOfProposalDefense: { files: [], title: "Minutes of Proposal Defense" },
+    abstract: { files: [], title: "Abstract" },
+    curriculumVitae: { files: [], title: "Curriculum Vitae" },
+    questionnaires: { files: [], title: "Questionnaires" },
+    technicalReview: { files: [], title: "Technical Review" }
   });
 
   // Authentication state
@@ -48,7 +109,11 @@ export default function SubmissionPage() {
   const router = useRouter();
 
   // Use our optimized hook for submission
-  const { submitApplication, isSubmitting, error: submissionError, result } = useSubmitApplication();
+  const {
+    submitApplication,
+    isLoading: isSubmitting,
+    error: submissionError
+  } = useApplicationData();
   
   const [isChecking, setIsChecking] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -61,104 +126,111 @@ export default function SubmissionPage() {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadStatus, setUploadStatus] = useState<string>("");
 
-  // Check authentication status
+  const [progressStep, setProgressStep] = useState<string>("");
+
+
+  // Update formData when formValues change
   useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged((user) => {
-      if (user) {
-        setUserEmail(user.email);
-        setIsLoggedIn(true);
-        
-        // Pre-fill email field if available
-        if (user.email && !formData.email) {
-          setFormData(prev => ({
-            ...prev,
-            email: user.email || ""
-          }));
-        }
-      } else {
-        setUserEmail(null);
-        setIsLoggedIn(false);
-        // Redirect to login if not authenticated
-        router.push("/login");
-      }
-    });
+    setFormData(prev => ({
+      ...prev,
+      principalInvestigator: formValues.principalInvestigator,
+      adviser: formValues.adviser,
+      courseProgram: formValues.courseProgram,
+      fundingType: formValues.fundingType,
+      researchType: formValues.researchType,
+      protocolDetails: {
+        researchTitle: formValues.researchTitle,
+      },
+      proponent: {
+        name: formValues.proponentName,
+        email: formValues.proponentEmail,
+        advisor: formValues.proponentAdvisor,
+        courseProgram: formValues.proponentCourseProgram,
+        submissionDate: new Date(),
+      },
+      notificationPreferences: {
+        email: formValues.notificationEmail,
+        sms: formValues.notificationSms,
+      },
+      faqAcknowledged: formValues.faqAcknowledged,
+      coResearchers: formValues.coResearchers,
+    }));
+  }, [formValues]);
 
-    return () => unsubscribe();
-  }, [router, formData.email]);
-
-  const handleFormDataChange = (data: ExtendedApplicationFormData) => {
-    setFormData(data);
+  const handleFormDataChange = (data: ApplicationFormValues) => {
+    setFormValues(data);
   };
 
-  const handleDocumentsChange = (files: DocumentFiles) => {
-    setDocumentFiles(files);
+  const handleDocumentsChange = (newDocuments: DocumentFiles) => {
+    setDocumentFiles(newDocuments);
   };
 
   const handleSubmit = async () => {
-    // Reset any previous errors and progress
     setError(null);
     setUploadProgress(0);
     setUploadStatus("");
-
-    // Validate required fields
-    if (!formData.principalInvestigator || 
-        !formData.researchTitle || 
-        !formData.adviser || 
-        !formData.courseProgram || 
-        !formData.email) {
-      setError("Please fill in all required information fields.");
+    setProgressStep("Validating files...");
+    
+    // Validate required form fields
+    if (!formData.principalInvestigator || !formData.adviser || !formData.courseProgram || !formData.protocolDetails.researchTitle) {
+      setError("Please fill in all required fields: Principal Investigator, Adviser, Course Program, and Research Title");
       return;
     }
 
-    // Essential documents are no longer required fields
-    
-    // Simulate upload progress for better user experience
-    setUploadStatus("Preparing files...");
-    
-    // Start progress animation
-    let progressInterval = setInterval(() => {
-      setUploadProgress(prev => {
-        if (prev >= 95) {
-          clearInterval(progressInterval);
-          return prev;
+    // Check for PDF only
+    for (const [key, value] of Object.entries(documentFiles)) {
+      const files = value.files || [];
+      for (const file of files) {
+        if (file.type !== 'application/pdf') {
+          setError(`All files must be PDF. Problem with: ${value.title || key}`);
+          return;
         }
-        
-        // Update status messages based on progress
-        if (prev === 10) setUploadStatus("Zipping documents...");
-        else if (prev === 30) setUploadStatus("Uploading to secure storage...");
-        else if (prev === 60) setUploadStatus("Processing submission...");
-        else if (prev === 85) setUploadStatus("Finalizing application...");
-        
-        return prev + 5;
-      });
-    }, 500);
+      }
+    }
 
-    // Directly proceed with submission - duplicate check is handled by the hook
+    // 3. Progress: Zipping
+    setProgressStep("Zipping documents...");
+    setUploadStatus("Zipping documents...");
+    setUploadProgress(10);
+
+    // Use filterFilledDocuments to get only filled documents
+    const documentFilesWithTitles = filterFilledDocuments(documentFiles);
+
     try {
-      const result = await submitApplication(formData, documentFiles);
-      
-      // If we got here, submission was successful
-      clearInterval(progressInterval);
+      setProgressStep("Uploading to secure storage...");
+      setUploadStatus("Uploading to secure storage...");
+      setUploadProgress(40);
+
+      // Transform formData to ApplicationFormData
+      const appFormData: ApplicationFormData = toApplicationFormData(formData);
+
+      // Pass this to the submission function
+      const applicationCode = await submitApplication(
+        appFormData,
+        documentFilesWithTitles,
+        (step: string, percent: number) => {
+          setProgressStep(step);
+          setUploadStatus(step);
+          setUploadProgress(percent);
+        }
+      );
+
+      setProgressStep("Saving application...");
+      setUploadStatus("Saving application...");
+      setUploadProgress(80);
+
       setUploadProgress(100);
       setUploadStatus("Submission complete!");
-      
-      // Short delay before showing success modal for UX
+      setProgressStep("Submission complete!");
       setTimeout(() => {
-        setApplicationCode(result.applicationCode);
+        setApplicationCode(applicationCode);
         setIsSuccessModalOpen(true);
       }, 500);
     } catch (err) {
-      // Clear the progress interval
-      clearInterval(progressInterval);
-      
-      // Check if this is a duplicate error from the hook
-      if (err instanceof Error && err.message.includes("similar application already exists")) {
-        // This is a duplicate error
-        setIsDuplicateModalOpen(true);
-      } else {
-        // Other errors are handled by the submission hook and displayed via submissionError
-        console.error("Error submitting application:", err);
-      }
+      setUploadProgress(0);
+      setProgressStep("");
+      setUploadStatus("");
+      setError(err instanceof Error ? err.message : "An unexpected error occurred during submission");
     }
   };
 
@@ -180,27 +252,27 @@ export default function SubmissionPage() {
     }, 300);
     
     try {
-      // Force submission by bypassing duplicate check
-      const result = await submitApplication({
-        ...formData,
-        _bypassDuplicateCheck: true // Special flag to bypass duplicate check
-      }, documentFiles);
+      // Use filterFilledDocuments for forced submission as well
+      const documentFilesWithTitles = filterFilledDocuments(documentFiles);
       
-      // Clear interval and complete progress
+      // Force submission by bypassing duplicate check
+      const appFormData: ApplicationFormData = {
+        ...toApplicationFormData(formData),
+        _bypassDuplicateCheck: true
+      };
+      const applicationCode = await submitApplication(appFormData, documentFilesWithTitles);
       clearInterval(progressInterval);
       setUploadProgress(100);
       setUploadStatus("Submission complete!");
-      
-      // Short delay before showing success modal
       setTimeout(() => {
-        setApplicationCode(result.applicationCode);
+        setApplicationCode(applicationCode);
         setIsSuccessModalOpen(true);
       }, 500);
     } catch (err) {
-      // Clear the progress interval
       clearInterval(progressInterval);
-      console.error("Error during forced submission:", err);
-      setError("An error occurred while submitting your application. Please try again.");
+      setError(typeof err === 'object' && err !== null && 'message' in err 
+        ? (err as any).message 
+        : "An unexpected error occurred during forced submission");
     }
   };
 
@@ -210,11 +282,10 @@ export default function SubmissionPage() {
   };
 
   // Show error from either local state or from the submission hook
-  const displayError = error || (submissionError?.message || null);
+  const displayError = error || (typeof submissionError === 'object' && submissionError && 'message' in submissionError
+    ? (submissionError as any).message
+    : submissionError);
 
-  if (!isLoggedIn) {
-    return <div className="p-8 text-center">Redirecting to login...</div>;
-  }
 
   return (
     <div className="container mx-auto py-8 px-4 max-w-5xl">

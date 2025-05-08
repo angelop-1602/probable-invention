@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { collection, query, doc, onSnapshot, QueryConstraint, DocumentData, Unsubscribe, FirestoreError } from 'firebase/firestore';
-import { db } from '@/lib/firebase-service';
+import { db } from '@/lib/firebase';
+
 type FirestoreState<T> = {
   data: T | null;
   loading: boolean;

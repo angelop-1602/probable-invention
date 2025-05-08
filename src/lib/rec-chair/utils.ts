@@ -81,12 +81,7 @@ export function formatDocumentName(fileName: string): string {
  * Get a consistent display name for a document
  */
 export function getDocumentDisplayName(document: Document): string {
-  return document.displayName || 
-         document.title || 
-         document.name || 
-         document.documentName || 
-         document.fileName || 
-         formatDocumentName(document.type || "Unknown Document");
+  return document.title;
 }
 
 /**

@@ -11,7 +11,7 @@ import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { Edit, Save, X } from "lucide-react";
 import { doc, updateDoc } from "firebase/firestore";
-import { db } from "@/lib/firebase-service";
+import { db } from "@/lib/firebase";
 import { toast } from "sonner";
 import { useFirestoreDocument } from "@/hooks/useFirestoreRealtime";
 
@@ -249,26 +249,16 @@ export function ProtocolInformation({ application, onStatusUpdated }: ProtocolIn
               </Button>
             </>
           ) : (
-            <Button variant="outline" size="sm" onClick={() => setIsEditing(true)}>
+            <Button size="sm" onClick={() => setIsEditing(true)}>
               <Edit className="h-4 w-4 mr-1" />
-              Edit
+              Edit Information
             </Button>
           )}
         </div>
       </CardHeader>
       <Separator />
-      <CardContent className="space-y-4 pt-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <h4 className="text-sm font-medium">Application Code</h4>
-            <p className="text-sm text-muted-foreground">{appData.applicationCode || "Not assigned"}</p>
-          </div>
-          
-          <div>
-            <h4 className="text-sm font-medium">REC Code</h4>
-            <p className="text-sm text-muted-foreground">{appData.recCode || appData.spupRecCode || "Not assigned"}</p>
-          </div>
-          
+      <CardContent className="space-y-4 ">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">  
           <div>
             <h4 className="text-sm font-medium">Principal Investigator</h4>
             <p className="text-sm text-muted-foreground">

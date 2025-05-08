@@ -2,24 +2,18 @@
  * Shared types for REC Chair application module
  */
 
+import { ReviewerAssignment } from '@/lib/reviewers/reviewer-assignment.service';
+
 // Document type for protocol documents
 export type Document = {
-  id?: string;
-  type?: string;
-  name?: string;
-  title?: string;
-  displayName?: string;
-  fileName?: string;
-  documentName?: string;
-  documentType?: string;
-  url?: string;
-  storagePath?: string;
-  downloadLink?: string;
-  uploadDate?: any;
-  status?: "accepted" | "rejected" | "pending" | "Revision Submitted";
-  reviewComment?: string;
+  documentType: string;
+  title: string;
+  fileName: string;
+  status: "accepted" | "rejected" | "pending" | "revision_submitted";
+  storagePath: string;
+  uploadDate: any;
+  version: number;
   comments?: string;
-  requestReason?: string;
 };
 
 // Application type for protocol applications
@@ -47,13 +41,7 @@ export type Application = {
   documents?: Document[];
   documentRequests?: string[];
   additionalDocuments?: Array<{ name: string; requestReason?: string }>;
-  reviewers?: {
-    id: string;
-    name: string;
-    assignDate: any;
-    status: string;
-    reviewForm?: string;
-  }[];
+  reviewers?: ReviewerAssignment[];
   comments?: {
     id: string;
     user: string;
@@ -157,4 +145,12 @@ export interface DocumentPreviewProps {
   onClose?: () => void;
   showActions?: boolean;
   isFullScreen?: boolean;
+  onDownload?: () => void;
+  rejectionComment?: string;
+  isRevision?: boolean;
+  revisionVersion?: number;
+  revisionDate?: any;
+  documents?: Document[];
+  currentDocumentIndex?: number;
+  onNavigateDocument?: (index: number) => void;
 } 

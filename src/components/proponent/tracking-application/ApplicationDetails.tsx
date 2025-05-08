@@ -4,13 +4,13 @@ import { Application, FundingSource, ResearchType } from "@/types/protocol-appli
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { PenSquare } from "lucide-react";
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogHeader, 
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
   DialogTitle,
   DialogDescription,
-  DialogFooter 
+  DialogFooter
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -68,8 +68,8 @@ export const ApplicationDetails = ({ application }: ApplicationDetailsProps) => 
   };
 
   // Format submission date for display
-  const formattedSubmissionDate = application.submissionDate 
-    ? new Date(application.submissionDate).toLocaleDateString() 
+  const formattedSubmissionDate = application.submissionDate
+    ? new Date(application.submissionDate).toLocaleDateString()
     : "N/A";
 
   return (
@@ -77,10 +77,10 @@ export const ApplicationDetails = ({ application }: ApplicationDetailsProps) => 
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Protocol Review Application Information</CardTitle>
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            onClick={handleEditClick} 
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleEditClick}
             className="h-8 w-8 p-0"
           >
             <PenSquare className="h-4 w-4" />
@@ -102,14 +102,6 @@ export const ApplicationDetails = ({ application }: ApplicationDetailsProps) => 
               <p>{application.principalInvestigator}</p>
             </div>
             <div>
-              <h3 className="font-semibold text-sm text-gray-500">Submission Date</h3>
-              <p>{formattedSubmissionDate}</p>
-            </div>
-            <div className="md:col-span-2">
-              <h3 className="font-semibold text-sm text-gray-500">Research Title</h3>
-              <p>{application.researchTitle}</p>
-            </div>
-            <div>
               <h3 className="font-semibold text-sm text-gray-500">Adviser</h3>
               <p>{application.adviser}</p>
             </div>
@@ -120,14 +112,6 @@ export const ApplicationDetails = ({ application }: ApplicationDetailsProps) => 
             <div>
               <h3 className="font-semibold text-sm text-gray-500">Email Address</h3>
               <p>{application.emailAddress}</p>
-            </div>
-            <div>
-              <h3 className="font-semibold text-sm text-gray-500">Type of Research</h3>
-              <p>{getResearchTypeText(application.typeOfResearch)}</p>
-            </div>
-            <div>
-              <h3 className="font-semibold text-sm text-gray-500">Funding</h3>
-              <p>{getFundingText(application.funding)}</p>
             </div>
           </div>
         </CardContent>
@@ -143,6 +127,15 @@ export const ApplicationDetails = ({ application }: ApplicationDetailsProps) => 
             </DialogDescription>
           </DialogHeader>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-4">
+            <div className="md:col-span-2">
+              <Label htmlFor="researchTitle">Research Title</Label>
+              <Input
+                id="researchTitle"
+                name="researchTitle"
+                value={editedApplication.researchTitle}
+                onChange={handleInputChange}
+              />
+            </div>
             <div>
               <Label htmlFor="principalInvestigator">Principal Investigator</Label>
               <Input
@@ -158,15 +151,6 @@ export const ApplicationDetails = ({ application }: ApplicationDetailsProps) => 
                 id="adviser"
                 name="adviser"
                 value={editedApplication.adviser}
-                onChange={handleInputChange}
-              />
-            </div>
-            <div className="md:col-span-2">
-              <Label htmlFor="researchTitle">Research Title</Label>
-              <Input
-                id="researchTitle"
-                name="researchTitle"
-                value={editedApplication.researchTitle}
                 onChange={handleInputChange}
               />
             </div>
