@@ -305,12 +305,17 @@ export function ProtocolDocumentList({ application, onUpdateApplication }: Proto
   };
 
   // Map application documents to the shared Document type
-  const sharedDocuments: SharedDocument[] = (application.documents || []).map((doc: any) => ({
-    ...doc,
-    name: doc.title || doc.fileName || doc.documentType || 'Document',
-    title: doc.title || doc.fileName || doc.documentType || 'Document',
-    status: typeof doc.status === 'string' ? doc.status.replace('_', ' ').replace(/\b\w/g, (c: string) => c.toUpperCase()) : doc.status,
-  }));
+  const sharedDocuments: SharedDocument[] = (application.documents || []).map((doc: any) => {
+    console.log("Mapping document to shared format:", doc);
+    return {
+      ...doc,
+      name: doc.title || doc.fileName || doc.documentType || 'Document',
+      title: doc.title || doc.fileName || doc.documentType || 'Document',
+      status: typeof doc.status === 'string' ? doc.status.replace('_', ' ').replace(/\b\w/g, (c: string) => c.toUpperCase()) : doc.status,
+    };
+  });
+
+  console.log("Shared documents to render:", sharedDocuments);
 
   return (
     <>

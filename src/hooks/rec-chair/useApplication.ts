@@ -5,6 +5,8 @@ import { useState, useEffect } from "react";
 import { doc, getDoc, collection, getDocs } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { Application, Reviewer } from "@/types/rec-chair";
+import { getDocuments } from "@/lib/documents/document-subcollection";
+import type { SubcollectionDocument } from "@/types/protocol-application/documents";
 
 export const useApplication = (applicationId: string) => {
   const [application, setApplication] = useState<Application | null>(null);
@@ -31,6 +33,12 @@ export const useApplication = (applicationId: string) => {
 
         if (applicationSnap.exists()) {
           const data = applicationSnap.data();
+
+          // Fetch documents from subcollection
+          console.log("Fetching documents from subcollection for application:", applicationId);
+          const documentsData = await getDocuments(applicationId);
+          console.log("Retrieved documents:", documentsData);
+
           const applicationData = {
             id: applicationSnap.id,
             applicationCode: data.applicationCode || applicationSnap.id,
@@ -52,15 +60,9 @@ export const useApplication = (applicationId: string) => {
             coInvestigators: data.coInvestigators || [],
             abstract: data.abstract || "",
             keywords: data.keywords || [],
-            // Map documents - handle different structures
-            documents: Array.isArray(data.documents) ? data.documents : 
-                      data.attachments ? Object.keys(data.attachments).map(key => ({
-                        type: key,
-                        name: data.attachments[key].name || key,
-                        url: data.attachments[key].url || "",
-                        uploadDate: data.attachments[key].timestamp || null,
-                        status: data.attachments[key].status || "pending" as "pending"
-                      })) : [],
+            // Use documents from subcollection instead of the main doc
+            documents: documentsData,
+            additionalDocuments: data.additionalDocuments || [],
             reviewers: data.reviewers || [],
             comments: data.comments || []
           } as Application;
@@ -118,6 +120,11 @@ export const useApplication = (applicationId: string) => {
 
       if (applicationSnap.exists()) {
         const data = applicationSnap.data();
+
+        // Fetch documents from subcollection
+        const documentsData = await getDocuments(applicationId);
+        console.log("Refreshed documents:", documentsData);
+        
         setApplication({
           id: applicationSnap.id,
           applicationCode: data.applicationCode || applicationSnap.id,
@@ -139,14 +146,9 @@ export const useApplication = (applicationId: string) => {
           coInvestigators: data.coInvestigators || [],
           abstract: data.abstract || "",
           keywords: data.keywords || [],
-          documents: Array.isArray(data.documents) ? data.documents : 
-                    data.attachments ? Object.keys(data.attachments).map(key => ({
-                      type: key,
-                      name: data.attachments[key].name || key,
-                      url: data.attachments[key].url || "",
-                      uploadDate: data.attachments[key].timestamp || null,
-                      status: data.attachments[key].status || "pending" as "pending"
-                    })) : [],
+          // Use documents from subcollection
+          documents: documentsData,
+          additionalDocuments: data.additionalDocuments || [],
           reviewers: data.reviewers || [],
           comments: data.comments || []
         } as Application);

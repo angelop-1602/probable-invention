@@ -31,6 +31,11 @@ export default function DocumentList({
 
   useEffect(() => {
     if (propDocuments && propDocuments.length > 0) {
+      // Debug: Log all document storagePaths
+      console.log("[Proponent DocumentList] Received documents:", propDocuments);
+      propDocuments.forEach((doc, idx) => {
+        console.log(`[Proponent DocumentList] Document #${idx} storagePath:`, doc.storagePath);
+      });
       setDocuments(propDocuments);
     }
   }, [propDocuments]);
@@ -42,29 +47,29 @@ export default function DocumentList({
   // Handle document upload
   const handleUpload = async (doc: SharedDocument, file: File) => {
     try {
-      if (onDocumentUploaded) {
+        if (onDocumentUploaded) {
         await onDocumentUploaded(doc.name, file);
-      }
-    } catch (error) {
-      console.error("Error uploading document:", error);
+        }
+      } catch (error) {
+        console.error("Error uploading document:", error);
       showErrorToast(
-        "Upload failed", 
+          "Upload failed", 
         "There was an error uploading the document. Please try again."
-      );
-    }
-  };
-
+        );
+      }
+    };
+    
   // Custom render actions for proponent
   const renderProponentActions = (doc: SharedDocument) => {
     if (viewOnly) return null;
 
-    return (
-      <>
+  return (
+    <>
         {(doc.status === "Review Required" || doc.status === "Pending") && (
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={() => {
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+              onClick={() => {
               const input = document.createElement('input');
               input.type = 'file';
               input.accept = '.pdf';
@@ -77,8 +82,8 @@ export default function DocumentList({
           >
             <Upload className="h-4 w-4 mr-2" />
             Upload
-          </Button>
-        )}
+              </Button>
+            )}
       </>
     );
   };
@@ -92,6 +97,11 @@ export default function DocumentList({
       alertMessage="The REC Chair has requested additional documents or revisions. Please review the items marked as 'Review Required' or 'Pending' and upload the necessary documents."
       renderActions={renderProponentActions}
       onDownload={(doc) => {
+        if (!doc.storagePath || typeof doc.storagePath !== 'string') {
+          console.error('[Proponent DocumentList] Document missing valid storagePath:', doc);
+          showErrorToast('Document Error', 'This document is missing a valid storage path. Please contact support.');
+          return;
+        }
         if (doc.downloadLink) {
           window.open(doc.downloadLink, '_blank');
         }

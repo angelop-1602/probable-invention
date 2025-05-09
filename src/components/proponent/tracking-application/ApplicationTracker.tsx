@@ -196,9 +196,14 @@ export const ApplicationTracker = ({ applicationCode, mockData }: ApplicationTra
     status: typeof doc.status === 'string' ? doc.status : (doc.status || 'Pending'),
   }));
 
-  // Filter out the ZIP entry from the document lists
-  const filteredDocuments = mappedDocuments.filter((doc: any) => doc.title !== 'Application Documents' && doc.documentType !== 'submission_zip');
-  const filteredAdditionalDocumentsRequested = mappedAdditionalDocumentsRequested.filter((doc: any) => doc.title !== 'Application Documents' && doc.documentType !== 'submission_zip');
+  // Filter out only the specific "Application Documents" ZIP entry, but keep all other documents
+  const filteredDocuments = mappedDocuments.filter((doc: any) => doc.title !== 'Application Documents');
+  const filteredAdditionalDocumentsRequested = mappedAdditionalDocumentsRequested.filter((doc: any) => doc.title !== 'Application Documents');
+
+  // Add debugging to see what documents we have
+  console.log("Original documents:", documents);
+  console.log("Mapped documents:", mappedDocuments);
+  console.log("Filtered documents:", filteredDocuments);
 
   // Document preview logic: only allow preview for PDFs
   const handleDocumentPreview = async (doc: any) => {

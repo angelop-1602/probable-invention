@@ -189,46 +189,39 @@ export function DocumentList({
 
   // Handle document view
   const handleViewDocument = async (doc: Document) => {
-    // Only allow preview for PDFs
-    if (doc.fileName && doc.fileName.toLowerCase().endsWith('.pdf')) {
-      // If the document is inside a ZIP, extract and preview
-      if (doc.storagePath && doc.storagePath.endsWith('.zip')) {
-        try {
-          setPdfBlobUrl(null);
-          setIsDocumentViewerOpen(true);
-          // Fetch the ZIP from Firebase Storage
-          const storage = getStorage();
-          const zipRef = ref(storage, doc.storagePath);
-          const zipUrl = await getDownloadURL(zipRef);
-          const zipResp = await fetch(zipUrl);
-          const zipBlob = await zipResp.blob();
-          // Extract files from ZIP
-          const files = await extractZipFiles(zipBlob);
-          // Find the PDF by filename (may need to sanitize/normalize)
-          const pdfBlob = files[doc.fileName] || Object.values(files).find(f => f.type === 'application/pdf');
-          if (pdfBlob) {
-            const url = URL.createObjectURL(pdfBlob);
-            setPdfBlobUrl(url);
-          } else {
-            setIsDocumentViewerOpen(false);
-            alert('PDF not found in ZIP.');
-            return;
-          }
-        } catch (err) {
-          setIsDocumentViewerOpen(false);
-          alert('Failed to extract PDF from ZIP.');
-          return;
-        }
-        setCurrentDocument(doc);
+    try {
+      console.log("Opening document for preview:", doc);
+      
+      // Check if we have a document to preview
+      if (!doc || (!doc.storagePath && !doc.downloadLink)) {
+        alert('No valid document to preview.');
         return;
       }
-      setCurrentDocument(doc);
-      setPdfBlobUrl(null);
-      setIsDocumentViewerOpen(true);
-      onView?.(doc);
-    } else {
-      // For non-PDFs (e.g., ZIPs), do not allow preview
-      alert('Preview is only available for PDF documents.');
+      
+      // If the document is inside a ZIP, use the server-side API for extraction
+      if (doc.storagePath && doc.storagePath.endsWith('.zip')) {
+        console.log("Document is in ZIP, using auto-extract API");
+        
+        // Normalize storagePath to remove any leading slash
+        let normalizedStoragePath = doc.storagePath?.replace(/^\/+/, '');
+        // Create a URL that uses the server-side auto-extract-zip API
+        const autoExtractUrl = `/api/auto-extract-zip?path=${encodeURIComponent(normalizedStoragePath)}&title=${encodeURIComponent(getDisplayTitle(doc))}`;
+        
+        // Set this URL directly for preview
+        setCurrentDocument(doc);
+        setPdfBlobUrl(autoExtractUrl);
+        setIsDocumentViewerOpen(true);
+        if (onView) onView(doc);
+      } else {
+        // For direct documents, use the normal preview flow
+        setCurrentDocument(doc);
+        setPdfBlobUrl(null);
+        setIsDocumentViewerOpen(true);
+        if (onView) onView(doc);
+      }
+    } catch (err) {
+      console.error("Error previewing document:", err);
+      alert(`Failed to preview document: ${err instanceof Error ? err.message : String(err)}`);
     }
   };
 
@@ -264,6 +257,9 @@ export function DocumentList({
         </CardHeader>
         <Separator />
         <CardContent>
+          {/* Debug info - log incoming documents */}
+          <script dangerouslySetInnerHTML={{ __html: `console.log("DocumentList received documents:", ${JSON.stringify(documents)})` }} />
+          
           {/* Alert Banner */}
           {showAlert && (
             <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-md">
@@ -275,92 +271,105 @@ export function DocumentList({
             </div>
           )}
 
+          {/* Empty State */}
+          {(!documents || documents.length === 0) && (
+            <div className="text-center py-12">
+              <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+              <h3 className="text-lg font-medium mb-2">No Documents Available</h3>
+              <p className="text-sm text-muted-foreground">
+                No documents have been uploaded or requested yet.
+              </p>
+            </div>
+          )}
+
           {/* Document List */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {documents.map((doc, index) => (
-              <div 
-                key={doc.id || index} 
-                className="flex flex-col p-3 border rounded-md hover:bg-muted/30 transition-colors"
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center flex-1">
-                    {getDocumentIcon(doc)}
-                    <div>
-                      <p className="text-sm font-medium">{getDisplayTitle(doc)}</p>
-                      
-                      {/* Status Badge */}
-                      {showStatus && (renderStatus?.(doc) || getStatusBadge(doc))}
-                      
-                      {/* Version & Date */}
-                      <div className="flex items-center space-x-2 mt-2">
-                        {showVersion && doc.version && (
-                          <span className="text-xs text-muted-foreground">
-                            Version {doc.version}
-                          </span>
-                        )}
-                        {showUploadDate && doc.uploadDate && (
-                          <span className="text-xs text-muted-foreground">
-                            Updated: {formatDate(doc.uploadDate)}
-                          </span>
+          {documents && documents.length > 0 && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {documents.map((doc, index) => (
+                <div 
+                  key={doc.id || index} 
+                  className="flex flex-col p-3 border rounded-md hover:bg-muted/30 transition-colors"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center flex-1">
+                      {getDocumentIcon(doc)}
+                      <div>
+                        <p className="text-sm font-medium">{getDisplayTitle(doc)}</p>
+                        
+                        {/* Status Badge */}
+                        {showStatus && (renderStatus?.(doc) || getStatusBadge(doc))}
+                        
+                        {/* Version & Date */}
+                        <div className="flex items-center space-x-2 mt-2">
+                          {showVersion && doc.version && (
+                            <span className="text-xs text-muted-foreground">
+                              Version {doc.version}
+                            </span>
+                          )}
+                          {showUploadDate && doc.uploadDate && (
+                            <span className="text-xs text-muted-foreground">
+                              Updated: {formatDate(doc.uploadDate)}
+                            </span>
+                          )}
+                        </div>
+                        
+                        {/* Comments */}
+                        {showComments && (doc.reviewComment || doc.requestReason || doc.comment) && (
+                          <p className="text-xs text-muted-foreground mt-1">
+                            {doc.reviewComment || doc.requestReason || doc.comment}
+                          </p>
                         )}
                       </div>
-                      
-                      {/* Comments */}
-                      {showComments && (doc.reviewComment || doc.requestReason || doc.comment) && (
-                        <p className="text-xs text-muted-foreground mt-1">
-                          {doc.reviewComment || doc.requestReason || doc.comment}
-                        </p>
+                    </div>
+
+                    {/* Actions */}
+                    <div className="flex space-x-2">
+                      {isActionAllowed('view', userRole) && (
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => handleViewDocument(doc)}
+                        >
+                          <Eye className="h-4 w-4 mr-2" />
+                          View
+                        </Button>
+                      )}
+                      {renderActions ? (
+                        renderActions(doc)
+                      ) : (
+                        <>
+                          {isActionAllowed('upload', userRole) && (doc.status === 'Review Required' || doc.status === 'Pending') && (
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => {
+                                const input = document.createElement('input');
+                                input.type = 'file';
+                                input.accept = '.pdf';
+                                input.onchange = (e) => {
+                                  const file = (e.target as HTMLInputElement).files?.[0];
+                                  if (file) handleUploadDocument(doc, file);
+                                };
+                                input.click();
+                              }}
+                            >
+                              <Upload className="h-4 w-4 mr-2" />
+                              Upload
+                            </Button>
+                          )}
+                          {isActionAllowed('download', userRole) && doc.downloadLink && (
+                            <Button variant="ghost" size="sm" onClick={() => handleDownloadDocument(doc)}>
+                              <FileText className="h-4 w-4" />
+                            </Button>
+                          )}
+                        </>
                       )}
                     </div>
                   </div>
-
-                  {/* Actions */}
-                  <div className="flex space-x-2">
-                    {isActionAllowed('view', userRole) && (
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        onClick={() => handleViewDocument(doc)}
-                      >
-                        <Eye className="h-4 w-4 mr-2" />
-                        View
-                      </Button>
-                    )}
-                    {renderActions ? (
-                      renderActions(doc)
-                    ) : (
-                      <>
-                        {isActionAllowed('upload', userRole) && (doc.status === 'Review Required' || doc.status === 'Pending') && (
-                          <Button 
-                            variant="outline" 
-                            size="sm"
-                            onClick={() => {
-                              const input = document.createElement('input');
-                              input.type = 'file';
-                              input.accept = '.pdf';
-                              input.onchange = (e) => {
-                                const file = (e.target as HTMLInputElement).files?.[0];
-                                if (file) handleUploadDocument(doc, file);
-                              };
-                              input.click();
-                            }}
-                          >
-                            <Upload className="h-4 w-4 mr-2" />
-                            Upload
-                          </Button>
-                        )}
-                        {isActionAllowed('download', userRole) && doc.downloadLink && (
-                          <Button variant="ghost" size="sm" onClick={() => handleDownloadDocument(doc)}>
-                            <FileText className="h-4 w-4" />
-                          </Button>
-                        )}
-                      </>
-                    )}
-                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
 

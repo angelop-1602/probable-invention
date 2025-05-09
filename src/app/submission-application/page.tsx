@@ -170,13 +170,13 @@ export default function SubmissionPage() {
     setUploadProgress(0);
     setUploadStatus("");
     setProgressStep("Validating files...");
-    
+
     // Validate required form fields
     if (!formData.principalInvestigator || !formData.adviser || !formData.courseProgram || !formData.protocolDetails.researchTitle) {
       setError("Please fill in all required fields: Principal Investigator, Adviser, Course Program, and Research Title");
       return;
     }
-
+    
     // Check for PDF only
     for (const [key, value] of Object.entries(documentFiles)) {
       const files = value.files || [];
@@ -186,8 +186,8 @@ export default function SubmissionPage() {
           return;
         }
       }
-    }
-
+        }
+        
     // 3. Progress: Zipping
     setProgressStep("Zipping documents...");
     setUploadStatus("Zipping documents...");

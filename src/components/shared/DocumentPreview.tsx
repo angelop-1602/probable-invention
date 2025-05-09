@@ -45,9 +45,18 @@ export function DocumentPreview({
       setError(null);
 
       try {
+        // Log input parameters for debugging
+        console.log("DocumentPreview loadDocument - Input:", { 
+          documentUrl, 
+          storagePath, 
+          documentTitle 
+        });
+
         let url = documentUrl
           ? documentUrl
           : `/api/documents/preview?path=${encodeURIComponent(storagePath!)}`;
+        
+        console.log("DocumentPreview - Using URL:", url);
 
         // Determine type
         if (url.toLowerCase().includes('.pdf')) {
@@ -58,9 +67,10 @@ export function DocumentPreview({
           setDocumentType('pdf');
         }
 
+        console.log("DocumentPreview - Document type set to:", documentType);
         setIframeUrl(url);
       } catch (err) {
-        console.error(err);
+        console.error("DocumentPreview loading error:", err);
         setError("Failed to load document. Please try again later.");
         showErrorToast(toast, "Error loading document", "There was a problem loading the document. Please try again.");
       } finally {
@@ -71,7 +81,17 @@ export function DocumentPreview({
     loadDocument();
   }, [documentUrl, storagePath, toast]);
 
-  const handleIframeLoad = () => setIframeLoading(false);
+  const handleIframeLoad = () => {
+    console.log("DocumentPreview - iframe loaded successfully");
+    setIframeLoading(false);
+  };
+
+  const handleIframeError = () => {
+    console.error("DocumentPreview - iframe loading error");
+    setError("Failed to load document content. The file may be unavailable or in an unsupported format.");
+    setIframeLoading(false);
+  };
+
   const handleDownload = () => {
     if (onDownload) onDownload();
     else if (documentUrl) {
@@ -258,6 +278,11 @@ export function DocumentPreview({
                       alt={documentTitle}
                       className="max-w-full max-h-full object-contain"
                       onLoad={() => setIframeLoading(false)}
+                      onError={() => {
+                        console.error("DocumentPreview - Image loading error for URL:", iframeUrl);
+                        setError("Failed to load image. The file may be unavailable or in an unsupported format.");
+                        setIframeLoading(false);
+                      }}
                     />
                   </div>
                 ) : (
@@ -266,6 +291,7 @@ export function DocumentPreview({
                     className="w-full h-full border-0"
                     title={documentTitle}
                     onLoad={handleIframeLoad}
+                    onError={handleIframeError}
                   />
                 )}
               </>

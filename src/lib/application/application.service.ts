@@ -194,7 +194,7 @@ export class ApplicationService {
               version: 1,
             };
             await addDocumentReference(applicationCode, docMeta);
-          }
+      }
         }
       }
       if (onProgress) onProgress("Finalizing...", 90);
