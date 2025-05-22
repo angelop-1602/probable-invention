@@ -1,20 +1,16 @@
-import { getFirestore, doc, getDoc, collection, query, where, getDocs, setDoc, Timestamp, updateDoc, onSnapshot } from "firebase/firestore";
+import { getFirestore, doc, getDoc, collection, query, where, getDocs, setDoc, Timestamp, onSnapshot } from "firebase/firestore";
 import { 
   DocumentFiles,
   ApplicationFormData, 
   SubmissionResult,
   DuplicateCheckResult,
-  Application
 } from './application.types';
 import { generateApplicationCode } from "./application.utils";
 import {
   getCollectionWithCache,
   listenToDocumentWithCache,
-  listenToCollectionWithCache,
   cleanupCache as cleanupDataCache
 } from "@/lib/firebase/firestore-cache";
-import { getDocuments, addDocument, addDocumentReference } from '@/lib/documents/document-subcollection';
-import { createApplicationZip } from '@/lib/documents/document-zip';
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 /**

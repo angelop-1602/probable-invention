@@ -10,15 +10,12 @@ import { Button } from "@/components/ui/button";
 import useApplicationData from '@/hooks/application/useApplicationData';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Loader2, AlertCircle } from "lucide-react";
-import { auth } from "@/lib/firebase";
 import { useRouter } from "next/navigation";
 import { Progress } from "@/components/ui/progress";
-import { filterFilledDocuments } from "@/lib/documents/document-utils";
 import { 
   ExtendedApplicationFormData,
   ApplicationFormValues
 } from "@/types";
-import type { UseApplicationDataResult } from '@/hooks/application/useApplicationData';
 import type { ApplicationFormData, DocumentFiles, DuplicateCheckResult } from '@/lib/application/application.types';
 
 function toApplicationFormData(formData: ExtendedApplicationFormData): ApplicationFormData {
@@ -103,12 +100,6 @@ export default function SubmissionPage() {
     technicalReview: { files: [], title: "Technical Review" }
   });
 
-  // Authentication state
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
-  const [userEmail, setUserEmail] = useState<string | null>(null);
-  const router = useRouter();
-
-  // Use our optimized hook for submission
   const {
     submitApplication,
     isLoading: isSubmitting,
@@ -193,8 +184,6 @@ export default function SubmissionPage() {
     setUploadStatus("Zipping documents...");
     setUploadProgress(10);
 
-    // Use filterFilledDocuments to get only filled documents
-    const documentFilesWithTitles = filterFilledDocuments(documentFiles);
 
     try {
       setProgressStep("Uploading to secure storage...");

@@ -2,7 +2,7 @@
 
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { SpupRecCodeAssignment } from "./SpupRecCodeAssignment";
-import { ProtocolDocumentList } from "./ProtocolDocumentList";
+import { Card, CardHeader, CardContent, CardTitle } from "@/components/ui/card";
 import { ProtocolInformation } from "./ProtocolInformation";
 import { ReviewersList } from "./ReviewersList";
 import { RecChairApplicationChat } from "./RecChairApplicationChat";
@@ -36,6 +36,14 @@ export function ApplicationDetail({
     }
   };
 
+  // Handle application update with Promise wrapper
+  const handleUpdateApplication = async (updatedApp: Application) => {
+    if (onUpdateApplication) {
+      onUpdateApplication(updatedApp);
+    }
+    return Promise.resolve();
+  };
+
   // Handle code saved
   const handleCodeSaved = (code: string) => {
     // Update the application locally
@@ -54,6 +62,22 @@ export function ApplicationDetail({
     }
   };
 
+  // Add a placeholder component
+  function DocumentPlaceholder() {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Document Management</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-center py-8 text-muted-foreground">
+            Document functionality has been removed. Please implement your custom solution.
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+
   // If no SPUP REC code assigned, only show the code assignment and basic details
   if (!application.spupRecCode) {
     return (
@@ -70,12 +94,8 @@ export function ApplicationDetail({
 
         <ProtocolInformation
           application={application}
-          onStatusUpdated={handleStatusUpdated}
         />
-        <ProtocolDocumentList
-          application={application}
-          onUpdateApplication={onUpdateApplication}
-        />
+        <DocumentPlaceholder />
       </div>
     );
   }
@@ -100,20 +120,16 @@ export function ApplicationDetail({
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <ProtocolInformation
           application={application}
-          onStatusUpdated={handleStatusUpdated}
         />
         <ReviewersList
           application={application}
           reviewers={reviewers}
-          onUpdateApplication={onUpdateApplication}
+          onUpdateApplication={handleUpdateApplication}
         />
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         <div className="col-span-12 lg:col-span-8">
-          <ProtocolDocumentList
-            application={application}
-            onUpdateApplication={onUpdateApplication}
-          />
+          <DocumentPlaceholder />
         </div>
         <div className="col-span-12 lg:col-span-4">
           <RecChairApplicationChat application={application} />

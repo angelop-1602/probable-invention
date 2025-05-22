@@ -16,7 +16,7 @@ export type Document = {
   comments?: string;
 };
 
-// Application type for protocol applications
+// Protocol application type for REC Chair
 export type Application = {
   id?: string;
   applicationCode?: string;
@@ -64,7 +64,9 @@ export type Reviewer = {
  */
 
 export interface ApplicationPageProps {
-  applicationId: string;
+  params: {
+    id: string;
+  };
 }
 
 export interface ApplicationPageClientProps {
@@ -72,39 +74,24 @@ export interface ApplicationPageClientProps {
 }
 
 export interface ApplicationsTableProps {
-  title?: string;
-  caption?: string;
-  data?: Application[];
-  hidePagination?: boolean;
-  onRefresh?: () => void;
+  applications: Application[];
+  onApplicationSelected?: (application: Application) => void;
+  onApplicationUpdated?: () => void;
 }
 
 export interface ApplicationDetailProps {
   application: Application;
-  reviewers?: Reviewer[];
-  onAssignReviewers?: () => void;
-  onAddComment?: () => void;
-  onUpdateStatus?: () => void;
-  onUpdateApplication?: (updatedApplication: Application) => void;
-  isFirstView?: boolean;
+  onUpdateApplication?: (updatedApplication: Application) => Promise<void>;
 }
 
 export interface ReviewersListProps {
   application: Application;
-  reviewers: Reviewer[];
-  onUpdateApplication?: (updatedApplication: Application) => void;
+  onUpdateApplication?: (updatedApplication: Application) => Promise<void>;
 }
 
 export interface ProtocolDocumentListProps {
-  application: {
-    id?: string;
-    documents?: Document[];
-    status?: string;
-    progress?: string;
-    progressDetails?: string;
-    additionalDocuments?: Array<{ name: string; requestReason?: string }>;
-  };
-  onUpdateApplication?: (updatedApplication: any) => void;
+  application: Application;
+  onUpdateApplication?: (updatedApplication: Application) => Promise<void>;
 }
 
 export interface StatusUpdateParam {
@@ -114,7 +101,7 @@ export interface StatusUpdateParam {
 
 export interface ProtocolInformationProps {
   application: Application;
-  onStatusUpdated?: (update: StatusUpdateParam) => void;
+  onUpdateApplication?: (updatedApplication: Application) => Promise<void>;
 }
 
 export interface ViewApplicationDialogProps {
@@ -123,12 +110,8 @@ export interface ViewApplicationDialogProps {
 }
 
 export interface SpupRecCodeAssignmentProps {
-  applicationId?: string;
-  principalInvestigator?: string;
-  researchType?: string;
-  currentCode?: string;
-  isFirstView?: boolean;
-  onCodeSaved: (code: string) => void;
+  application: Application;
+  onUpdateApplication?: (updatedApplication: Application) => Promise<void>;
 }
 
 export interface AddCommentDialogProps {
@@ -136,21 +119,7 @@ export interface AddCommentDialogProps {
   onCommentAdded?: () => void;
 }
 
-export interface DocumentPreviewProps {
-  documentTitle: string;
-  documentUrl?: string;
-  storagePath?: string;
-  onApprove?: () => void;
-  onReject?: () => void;
-  onClose?: () => void;
-  showActions?: boolean;
-  isFullScreen?: boolean;
-  onDownload?: () => void;
-  rejectionComment?: string;
-  isRevision?: boolean;
-  revisionVersion?: number;
-  revisionDate?: any;
-  documents?: Document[];
-  currentDocumentIndex?: number;
-  onNavigateDocument?: (index: number) => void;
+export interface RecChairApplicationChatProps {
+  applicationId: string;
+  onCommentAdded?: () => void;
 } 

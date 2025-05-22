@@ -5,8 +5,6 @@ import { useState, useEffect } from "react";
 import { doc, getDoc, collection, getDocs } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { Application, Reviewer } from "@/types/rec-chair";
-import { getDocuments } from "@/lib/documents/document-subcollection";
-import type { SubcollectionDocument } from "@/types/protocol-application/documents";
 
 export const useApplication = (applicationId: string) => {
   const [application, setApplication] = useState<Application | null>(null);
