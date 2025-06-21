@@ -7,6 +7,5 @@
  */
 
 export { cn } from './ui';
-export { formatDate } from './application/application.utils';
 
 // Re-export any other utilities that were used from the old utils.ts 

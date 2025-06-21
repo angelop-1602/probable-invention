@@ -20,7 +20,7 @@ import { ChevronRight, Home } from "lucide-react";
 
 interface ProponentHeaderProps {
     title: string;
-    subtitle?: string;
+    subtitle?: React.ReactNode;
     showBreadcrumbs?: boolean;
     currentPage?: string;
     showNav?: boolean;
@@ -37,14 +37,14 @@ export function ProponentHeader({
 
     // Define navigation links
     const navLinks = [
-        { name: "Home", href: "/" },
+        { name: "Home", href: "/dashboard" },
         { name: "Submission", href: "/submission-application" },
-        { name: "Tracker", href: "/track-application" },
+        { name: "Sign out", href: "/signout" },
     ];
 
 
     return (
-        <Card className="border-none shadow-none">
+        <Card className="container mx-auto mt-6 border-none shadow-none">
             <CardContent className="p-0">
                 <div className="flex flex-col space-y-3">
                     {/* Logo and Title */}
@@ -52,7 +52,7 @@ export function ProponentHeader({
                         <div className="flex flex-col text-center">
                             <h1 className="text-2xl font-bold">{title}</h1>
                             {subtitle && (
-                                <p className="text-muted-foreground text-sm">{subtitle}</p>
+                                <div className="text-muted-foreground text-sm">{subtitle}</div>
                             )}
                         </div>
                     </div>

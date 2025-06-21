@@ -1,17 +1,17 @@
 'use client';
 
 import * as React from "react";
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogHeader, 
-  DialogTitle, 
+import { useRouter } from "next/navigation";
+import {
+  Dialog,
+  DialogContent,
   DialogDescription,
-  DialogFooter
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { CheckCircle2 } from "lucide-react";
-import { useRouter } from "next/navigation";
 
 interface SuccessModalProps {
   isOpen: boolean;
@@ -19,7 +19,7 @@ interface SuccessModalProps {
   onClose: () => void;
 }
 
-function SuccessModal({ isOpen, applicationCode, onClose }: SuccessModalProps) {
+export function SuccessModal({ isOpen, applicationCode, onClose }: SuccessModalProps) {
   const router = useRouter();
 
   const handleCopyCode = () => {
@@ -28,10 +28,6 @@ function SuccessModal({ isOpen, applicationCode, onClose }: SuccessModalProps) {
 
   const handleTrackNow = () => {
     router.push(`/track-application/${applicationCode}`);
-  };
-
-  const handleGoHome = () => {
-    router.push('/');
   };
 
   return (
@@ -63,14 +59,13 @@ function SuccessModal({ isOpen, applicationCode, onClose }: SuccessModalProps) {
             </div>
             <p className="mt-4 text-sm text-muted-foreground">
               Please make sure to save this code. You will need it to track your application status.
-              This is not your SPUP REC Code, which will be assigned after the REC Chair reviews your application.
             </p>
           </div>
         </div>
         
-        <DialogFooter className="flex flex-col sm:flex-row gap-2">
+        <DialogFooter>
           <Button 
-            className="sm:w-full"
+            className="w-full"
             onClick={handleTrackNow}
           >
             Track Application
@@ -79,6 +74,4 @@ function SuccessModal({ isOpen, applicationCode, onClose }: SuccessModalProps) {
       </DialogContent>
     </Dialog>
   );
-}
-
-export { SuccessModal }; 
+} 

@@ -47,18 +47,12 @@ export function LandingFooter() {
           {/* Logo and Institutional Info */}
           <div className="md:col-span-2">
             <div className="flex items-center mb-4">
-              <div className="relative w-12 h-12 mr-3 bg-white rounded-lg overflow-hidden">
                 <Image 
-                  src="/SPUP-final-logo.png" 
+                  src="/SPUP-REC-logo-footer.png" 
                   alt="SPUP Logo"
-                  fill
-                  className="object-contain p-1"
+                  width={300}
+                  height={300}
                 />
-              </div>
-              <div>
-                <span className="text-lg font-bold">St. Paul University Philippines</span>
-                <span className="block text-sm text-gray-300">Research Ethics Committee</span>
-              </div>
             </div>
             <p className="text-gray-300 mb-4 max-w-md">
               The Research Ethics Committee (REC) ensures ethical compliance for all research 
@@ -68,11 +62,10 @@ export function LandingFooter() {
               <p>Mabini St., Tuguegarao City</p>
               <p>Cagayan, Philippines 3500</p>
               <p>Email: rec@spup.edu.ph</p>
-              <p>Phone: +63 (078) 123-4567</p>
             </address>
           </div>
           
-          {/* Footer Link Sections */}
+          {/* Footer Link Sections
           {footerSections.map((section, index) => (
             <div key={index}>
               <h4 className="font-semibold text-lg mb-4">{section.title}</h4>
@@ -89,7 +82,7 @@ export function LandingFooter() {
                 ))}
               </ul>
             </div>
-          ))}
+          ))} */}
         </div>
         
         <div className="border-t border-gray-700 pt-6 text-center text-gray-400 text-sm">

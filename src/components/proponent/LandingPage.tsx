@@ -2,9 +2,10 @@ import React from "react";
 import { Hero } from "./landing/Hero";
 import { InfoSection } from "./landing/InfoSection"; 
 import { ProcessTracker } from "./landing/ProcessTracker";
-import { DocumentLibrary } from "./landing/DocumentLibrary";
 import { FAQSection } from "./landing/FAQSection";
 import { LandingFooter } from "./landing/LandingFooter";
+import Header from "./landing/Header";
+import AboutUs from "./landing/AboutUs";
 
 /**
  * Landing page for proponents of the REC Protocol Review System
@@ -13,10 +14,11 @@ import { LandingFooter } from "./landing/LandingFooter";
 export function ProponentLandingPage() {
   return (
     <div className="flex flex-col min-h-screen">
+      <Header />
       <Hero />
       <InfoSection />
+      <AboutUs />
       <ProcessTracker />
-      <DocumentLibrary />
       <FAQSection />
       <LandingFooter />
     </div>

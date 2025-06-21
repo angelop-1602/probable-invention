@@ -9,10 +9,6 @@ import { ChevronDown, ChevronUp } from "@/components/ui/Icons";
 export function FAQSection() {
   const faqs = [
     {
-      question: "How do I get an Application Code?",
-      answer: "You'll receive an Application Code immediately after submitting your protocol review application. This code will be displayed on the confirmation page and sent to your email. Save this code as you'll need it to track your application status."
-    },
-    {
       question: "What's the difference between an Application Code and SPUP REC Code?",
       answer: "The Application Code is generated immediately upon submission and is used to track your application. The SPUP REC Code is assigned by the REC Chair after confirming your submission is complete, and follows the format SPUP_YYYY_NNNN_TR_FL."
     },
@@ -43,7 +39,7 @@ export function FAQSection() {
   };
 
   return (
-    <div className="py-16 bg-gray-50" id="faqs">
+    <div className="py-16 bg-gray-50 scroll-mt-20" id="faqs">
       <div className="container mx-auto px-6">
         <div className="text-center mb-12">
           <h2 className="text-3xl font-bold text-gray-800">

@@ -13,63 +13,64 @@ module.exports = {
       fontFamily: {
         sans: ['Poppins', 'ui-sans-serif', 'system-ui', 'sans-serif'],
       },
-      colors: {
-        primary: {
-          DEFAULT: '#036635',
-          50: '#E6F2ED', // Very light shade
-          100: '#CCE6DB', // Light shade
-          200: '#99CDB7', // Lighter shade
-          300: '#66B393', // Light medium shade
-          400: '#339A6F', // Medium shade
-          500: '#036635', // Base color (primary)
-          600: '#025C30', // Slightly darker
-          700: '#02522B', // Darker
-          800: '#014825', // Very dark
-          900: '#013D1F', // Extremely dark
-        },
-        secondary: {
-          DEFAULT: '#FECC07',
-          50: '#FFFAE6', // Very light shade
-          100: '#FFF6CC', // Light shade
-          200: '#FFED99', // Lighter shade
-          300: '#FEE466', // Light medium shade
-          400: '#FEDB33', // Medium shade
-          500: '#FECC07', // Base color (secondary)
-          600: '#E5B900', // Slightly darker
-          700: '#CCA400', // Darker
-          800: '#B38F00', // Very dark
-          900: '#997A00', // Extremely dark
-        },
-        // Additional colors for a complete theme
-        success: {
-          DEFAULT: '#10B981', // Green
-          light: '#D1FAE5',
-        },
-        warning: {
-          DEFAULT: '#F59E0B', // Amber
-          light: '#FEF3C7',
-        },
-        error: {
-          DEFAULT: '#EF4444', // Red
-          light: '#FEE2E2',
-        },
-        info: {
-          DEFAULT: '#3B82F6', // Blue
-          light: '#DBEAFE',
-        },
-        gray: {
-          50: '#F9FAFB',
-          100: '#F3F4F6',
-          200: '#E5E7EB',
-          300: '#D1D5DB',
-          400: '#9CA3AF',
-          500: '#6B7280',
-          600: '#4B5563',
-          700: '#374151',
-          800: '#1F2937',
-          900: '#111827',
-        },
-      },
+
+  theme: {colors: {
+    primary: {
+      DEFAULT: '#036635',
+      50: '#E6F2ED', // Very light shade
+      100: '#CCE6DB', // Light shade
+      200: '#99CDB7', // Lighter shade
+      300: '#66B393', // Light medium shade
+      400: '#339A6F', // Medium shade
+      500: '#036635', // Base color (primary)
+      600: '#025C30', // Slightly darker
+      700: '#02522B', // Darker
+      800: '#014825', // Very dark
+      900: '#013D1F', // Extremely dark
+    },
+    secondary: {
+      DEFAULT: '#FECC07',
+      50: '#FFFAE6', // Very light shade
+      100: '#FFF6CC', // Light shade
+      200: '#FFED99', // Lighter shade
+      300: '#FEE466', // Light medium shade
+      400: '#FEDB33', // Medium shade
+      500: '#FECC07', // Base color (secondary)
+      600: '#E5B900', // Slightly darker
+      700: '#CCA400', // Darker
+      800: '#B38F00', // Very dark
+      900: '#997A00', // Extremely dark
+    },
+    // Additional colors for a complete theme
+    success: {
+      DEFAULT: '#10B981', // Green
+      light: '#D1FAE5',
+    },
+    warning: {
+      DEFAULT: '#F59E0B', // Amber
+      light: '#FEF3C7',
+    },
+    error: {
+      DEFAULT: '#EF4444', // Red
+      light: '#FEE2E2',
+    },
+    info: {
+      DEFAULT: '#3B82F6', // Blue
+      light: '#DBEAFE',
+    },
+    gray: {
+      50: '#F9FAFB',
+      100: '#F3F4F6',
+      200: '#E5E7EB',
+      300: '#D1D5DB',
+      400: '#9CA3AF',
+      500: '#6B7280',
+      600: '#4B5563',
+      700: '#374151',
+      800: '#1F2937',
+      900: '#111827',
+    },
+  }},    
       // Add additional theme customizations
       borderRadius: {
         'xs': '0.125rem',
@@ -107,5 +108,8 @@ module.exports = {
       },
     },
   },
+
   plugins: [],
 } 
+// tailwind.config.js
+// tailwind.config.js

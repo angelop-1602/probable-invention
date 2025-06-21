@@ -1,23 +1,12 @@
 'use client';
 
 import * as React from "react";
-import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { 
-  Form, 
-  FormControl, 
-  FormField, 
-  FormItem, 
-  FormLabel, 
-  FormMessage 
-} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Plus, X } from "lucide-react";
-import { ApplicationFormValues } from "@/types/protocol-application/submission";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 // Schema for the main form
 const applicationSchema = z.object({
@@ -39,212 +28,169 @@ const applicationSchema = z.object({
 type FormSchemaType = z.infer<typeof applicationSchema>;
 
 interface ApplicationInformationProps {
-  onFormDataChange: (data: ApplicationFormValues) => void;
-  isSubmitting: boolean;
+  formData: any;
+  onChange: (data: any) => void;
 }
 
-function ApplicationInformation({ onFormDataChange, isSubmitting }: ApplicationInformationProps) {
-  // Track co-researchers in a separate state
-  const [coResearchers, setCoResearchers] = useState<string[]>([]);
-  
-  const form = useForm<FormSchemaType>({
-    resolver: zodResolver(applicationSchema),
-    defaultValues: {
-      principalInvestigator: "",
-      adviser: "",
-      courseProgram: "",
-      fundingType: "Researcher-funded",
-      researchType: "Experimental",
-      researchTitle: "",
-      proponentName: "",
-      proponentEmail: "",
-      proponentAdvisor: "",
-      proponentCourseProgram: "",
-      notificationEmail: true,
-      notificationSms: false,
-      faqAcknowledged: false,
-    },
-  });
-
-  // Update parent component with form values
-  React.useEffect(() => {
-    const subscription = form.watch((data) => {
-      if (data && !Array.isArray(data)) {
-      // Combine form data with co-researchers
-        const formData: ApplicationFormValues = {
-          ...data as FormSchemaType,
-        coResearchers
-      };
-        onFormDataChange(formData);
-      }
+export const ApplicationInformation = ({ formData, onChange }: ApplicationInformationProps) => {
+  const handleInputChange = (field: string, value: string) => {
+    onChange({
+      ...formData,
+      [field]: value
     });
-    
-    return () => subscription.unsubscribe();
-  }, [form, onFormDataChange, coResearchers]);
-
-  // Add a new co-researcher
-  const addCoResearcher = () => {
-    setCoResearchers([...coResearchers, ""]);
-  };
-
-  // Update a co-researcher at a specific index
-  const updateCoResearcher = (index: number, value: string) => {
-    const updated = [...coResearchers];
-    updated[index] = value;
-    setCoResearchers(updated);
-  };
-
-  // Remove a co-researcher at a specific index
-  const removeCoResearcher = (index: number) => {
-    setCoResearchers(coResearchers.filter((_, i) => i !== index));
   };
 
   return (
-    <Card className="w-full">
+    <Card>
       <CardHeader>
-        <CardTitle>Protocol Review Application Information</CardTitle>
       </CardHeader>
       <CardContent>
-        <Form {...form}>
-          <form className="space-y-4">
-            <div className="space-y-2">
-              <FormField
-                control={form.control}
-                name="principalInvestigator"
-                render={({ field }) => (
-                  <FormItem>
-                    <div className="flex items-center justify-between">
-                      <FormLabel>Principal Investigator</FormLabel>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={addCoResearcher}
-                        disabled={isSubmitting}
-                        className="h-8 px-2 text-xs"
-                      >
-                        <Plus className="h-3.5 w-3.5 mr-1" />
-                        Add Co-Researcher
-                      </Button>
-                    </div>
-                    <FormControl>
-                      <Input 
-                        placeholder="Name of the leader or researcher" 
-                        {...field}
-                        disabled={isSubmitting}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {/* Co-Researchers Section */}
-              {coResearchers.length > 0 && (
-                <div className="pl-6 space-y-2 pt-1 border-l-2 border-l-muted ml-2">
-                  {coResearchers.map((researcher, index) => (
-                    <div key={index} className="flex items-center gap-2">
-                      <Input
-                        placeholder={`Co-Researcher ${index + 1}`}
-                        value={researcher}
-                        onChange={(e) => updateCoResearcher(index, e.target.value)}
-                        disabled={isSubmitting}
-                        className="flex-1"
-                      />
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => removeCoResearcher(index)}
-                        disabled={isSubmitting}
-                        className="h-8 w-8"
-                      >
-                        <X className="h-4 w-4 text-muted-foreground hover:text-destructive" />
-                        <span className="sr-only">Remove</span>
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <FormField
-              control={form.control}
-              name="researchTitle"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Research Title</FormLabel>
-                  <FormControl>
-                    <Input 
-                      placeholder="Title of your research" 
-                      {...field}
-                      disabled={isSubmitting}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="space-y-2">
+            <Label htmlFor="principalInvestigator">Principal Investigator</Label>
+            <Input
+              id="principalInvestigator"
+              value={formData.principalInvestigator}
+              onChange={(e) => handleInputChange('principalInvestigator', e.target.value)}
+              placeholder="Enter principal investigator name"
             />
+          </div>
 
-            <FormField
-              control={form.control}
-              name="adviser"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Adviser</FormLabel>
-                  <FormControl>
-                    <Input 
-                      placeholder="Name of your adviser" 
-                      {...field}
-                      disabled={isSubmitting}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+          <div className="space-y-2">
+            <Label htmlFor="adviser">Adviser</Label>
+            <Input
+              id="adviser"
+              value={formData.adviser}
+              onChange={(e) => handleInputChange('adviser', e.target.value)}
+              placeholder="Enter adviser name"
             />
+          </div>
 
-            <FormField
-              control={form.control}
-              name="courseProgram"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Course/Program (Acronym)</FormLabel>
-                  <FormControl>
-                    <Input 
-                      placeholder="e.g., BSCS, BSIT, etc." 
-                      {...field}
-                      disabled={isSubmitting}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+          <div className="space-y-2">
+            <Label htmlFor="courseProgram">Course/Program</Label>
+            <Input
+              id="courseProgram"
+              value={formData.courseProgram}
+              onChange={(e) => handleInputChange('courseProgram', e.target.value)}
+              placeholder="Enter course or program"
             />
+          </div>
 
-            <FormField
-              control={form.control}
-              name="proponentEmail"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Email Address</FormLabel>
-                  <FormControl>
-                    <Input 
-                      type="email" 
-                      placeholder="your@email.com" 
-                      {...field}
-                      disabled={isSubmitting}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+          <div className="space-y-2">
+            <Label htmlFor="email">Email Address</Label>
+            <Input
+              id="email"
+              type="email"
+              value={formData.proponent?.email}
+              onChange={(e) => handleInputChange('proponent.email', e.target.value)}
+              placeholder="Enter email address"
             />
-          </form>
-        </Form>
+          </div>
+
+          <div className="space-y-2 md:col-span-2">
+            <Label htmlFor="researchTitle">Research Title</Label>
+            <Input
+              id="researchTitle"
+              value={formData.protocolDetails?.researchTitle}
+              onChange={(e) => handleInputChange('protocolDetails.researchTitle', e.target.value)}
+              placeholder="Enter research title"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="fundingType">Funding Type</Label>
+            <Select
+              value={formData.fundingType}
+              onValueChange={(value) => handleInputChange('fundingType', value)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select funding type" />
+              </SelectTrigger>
+              <SelectContent>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <SelectItem value="Researcher-funded">Researcher-funded</SelectItem>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Research is funded by the researcher's personal resources</p>
+                    </TooltipContent>
+                  </Tooltip>
+
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <SelectItem value="Institution-funded">Institution-funded</SelectItem>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Research is funded by the academic institution or university</p>
+                    </TooltipContent>
+                  </Tooltip>
+
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <SelectItem value="Agency-funded">Agency-funded</SelectItem>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Research is funded by an external agency or organization</p>
+                    </TooltipContent>
+                  </Tooltip>
+
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <SelectItem value="Pharmaceutical-funded">Pharmaceutical-funded</SelectItem>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Research is funded by a pharmaceutical company or industry</p>
+                    </TooltipContent>
+                  </Tooltip>
+
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <SelectItem value="Other">Other</SelectItem>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Research is funded by other sources not listed above</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="researchType">Research Type</Label>
+            <Select
+              value={formData.researchType}
+              onValueChange={(value) => handleInputChange('researchType', value)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select research type" />
+              </SelectTrigger>
+              <SelectContent>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <SelectItem value="Experimental">Experimental</SelectItem>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Research that involves controlled testing of variables and hypotheses in a scientific setting</p>
+                    </TooltipContent>
+                  </Tooltip>
+
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <SelectItem value="Social/Behavioral">Social/Behavioral</SelectItem>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Research that studies human behavior, social interactions, and societal phenomena</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
       </CardContent>
     </Card>
   );
-}
-
-export { ApplicationInformation };
+};
