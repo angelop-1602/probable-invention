@@ -13,77 +13,12 @@ interface Message {
   timestamp: string;
 }
 
-// Dummy conversation data
-const dummyMessages: Message[] = [
-  {
-    id: 1,
-    sender: "System",
-    role: "system",
-    message:
-      "Welcome to your protocol tracking page. You can use this space to communicate with the review committee.",
-    timestamp: "2024-03-20 09:00 AM",
-  },
-  {
-    id: 2,
-    sender: "Dr. Elizabeth Iquin",
-    role: "rec-chair",
-    message:
-      "Good morning. I've reviewed your protocol application. There are a few points that need clarification in your Research Proposal.",
-    timestamp: "2024-03-20 09:15 AM",
-  },
-  {
-    id: 3,
-    sender: "Angel Peralta",
-    role: "proponent",
-    message:
-      "Thank you for reviewing my application. I'll be happy to provide the necessary clarifications.",
-    timestamp: "2024-03-20 09:20 AM",
-  },
-  {
-    id: 4,
-    sender: "Dr. Elizabeth Iquin",
-    role: "rec-chair",
-    message:
-      "Please revise the methodology section to include more details about your data collection procedures and ethical considerations.",
-    timestamp: "2024-03-20 09:25 AM",
-  },
-  {
-    id: 5,
-    sender: "Angel Peralta",
-    role: "proponent",
-    message:
-      "I understand. I'll update the methodology section with more detailed information about the data collection process and add a comprehensive section on ethical considerations.",
-    timestamp: "2024-03-20 09:30 AM",
-  },
-  {
-    id: 6,
-    sender: "Dr. Elizabeth Iquin",
-    role: "rec-chair",
-    message:
-      "Also, please ensure that your informed consent form includes all the necessary elements as per our guidelines. You can find the template in the REC documents section.",
-    timestamp: "2024-03-20 09:35 AM",
-  },
-  {
-    id: 7,
-    sender: "Angel Peralta",
-    role: "proponent",
-    message:
-      "Yes, I'll revise the informed consent form according to the template. When would you like me to submit the revised documents?",
-    timestamp: "2024-03-20 09:40 AM",
-  },
-  {
-    id: 8,
-    sender: "Dr. Elizabeth Iquin",
-    role: "rec-chair",
-    message:
-      "Please submit the revised documents within 5 working days. Once submitted, we'll review them in our next committee meeting.",
-    timestamp: "2024-03-20 09:45 AM",
-  },
-];
+// Empty message array - will be populated with real data from Firebase
+const initialMessages: Message[] = [];
 
 export function MessageSection() {
   const [message, setMessage] = useState("");
-  const [messages, setMessages] = useState<Message[]>(dummyMessages);
+  const [messages, setMessages] = useState<Message[]>(initialMessages);
   const currentUserRole = "proponent"; // This would normally come from auth context
 
   const handleSubmit = (e: FormEvent) => {

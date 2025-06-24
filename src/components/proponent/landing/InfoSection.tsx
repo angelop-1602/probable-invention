@@ -35,18 +35,18 @@ export function InfoSection() {
   ];
 
   return (
-    <div className="py-16 bg-white scroll-mt-20">
-      <div className="container mx-auto px-6">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold text-gray-800">
+    <div className="py-12 sm:py-16 bg-white scroll-mt-20">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center mb-8 sm:mb-12">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-800">
             Simplifying Research Ethics Reviews
           </h2>
-          <p className="mt-4 text-gray-600 max-w-2xl mx-auto">
+          <p className="mt-4 text-base sm:text-lg text-gray-600 max-w-2xl mx-auto">
             Our system streamlines the protocol review process, helping researchers obtain ethical clearance efficiently while maintaining high standards.
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
           {features.map((feature, index) => (
             <div 
               key={index} 

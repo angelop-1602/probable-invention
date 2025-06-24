@@ -11,7 +11,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { CheckCircle2 } from "lucide-react";
+import { CheckCircle2, Info } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface SuccessModalProps {
   isOpen: boolean;
@@ -39,7 +40,7 @@ export function SuccessModal({ isOpen, applicationCode, onClose }: SuccessModalP
           </div>
           <DialogTitle className="text-center text-xl">Application Submitted Successfully!</DialogTitle>
           <DialogDescription className="text-center">
-            Your protocol review application has been submitted. Please save your application code for tracking.
+            Your protocol review application has been submitted and is now being processed.
           </DialogDescription>
         </DialogHeader>
         
@@ -58,9 +59,19 @@ export function SuccessModal({ isOpen, applicationCode, onClose }: SuccessModalP
               </Button>
             </div>
             <p className="mt-4 text-sm text-muted-foreground">
-              Please make sure to save this code. You will need it to track your application status.
+              <strong>Important:</strong> Save this Application Code to track your submission. 
+              Use this code to check your application status and communicate with the REC.
             </p>
           </div>
+          
+          <Alert className="mt-4">
+            <Info className="h-4 w-4" />
+            <AlertDescription className="text-sm">
+              <strong>Note:</strong> This is your Application Code for tracking purposes. 
+              Your official SPUP REC Code will be assigned by the REC Chair after the initial review 
+              and will be visible in your application tracker.
+            </AlertDescription>
+          </Alert>
         </div>
         
         <DialogFooter>

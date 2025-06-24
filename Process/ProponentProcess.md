@@ -20,7 +20,7 @@
 
 **2. REC Chair Completeness Check (SC)**  
 - The REC Chair verifies if all documents are complete.  
-  - If **incomplete**: You’ll be notified to submit missing documents.  
+  - If **incomplete**: You'll be notified to submit missing documents.  
   - If **complete**: The REC Chair assigns the **SPUP REC Code** (`SPUP_YYYY_NNNN_TR_FL`), visible in your tracker.  
 
 ---
@@ -106,7 +106,7 @@
     *(Provides essential study details and starts the submission process.)*
   - Form 07C: Informed Consent Template  
     *(Template for obtaining participant consent and ensuring ethical standards.)*
-  - Form 07B: Adviser’s Certification Form  
+  - Form 07B: Adviser's Certification Form  
     *(Confirms adviser review and approval.)*
   - Research Proposal/Study Protocol  
     *(Detailed document outlining study design, methodology, and analysis plan.)*
@@ -122,18 +122,19 @@
     *(Required if the study needs additional technical or specialized review.)*
   - Other Documents (if applicable)  
     *(Additional instruments related to the study.)*
-  (Note: after the proponent finished the submission show a modal to show the Applicaiton code, indicate that save it to track their Application and indicate also that it is not their SPUP REC Code they can see the SPUP REC Code after the REC Chair Checked their applicaiton)
+
+**(Note: After the proponent finishes the submission, show a modal with the Application Code. Emphasize that this is their Application Code for tracking purposes, not their SPUP REC Code. The SPUP REC Code will be assigned by the REC Chair after the completeness check and will be visible in their application tracker.)**
 
 *To generate for future reference:*
 
-- **Application Code** (Document ID to track the Application)  
+- **Application Code** (Auto-generated tracking code)  
   - **Code Format:**  
     `RECYYYYRC`  
     - REC: Starting label  
     - YYYY: Current year  
-    - RC: Random 6 characters
+    - RC: Random 6 characters (letters and numbers)
 
-- **Initial SPUP REC Code**(Finilize by the REC Chair) 
+- **SPUP REC Code** (Official protocol identifier assigned by REC Chair) 
   - **Code Format:**  
     `SPUP_YYYY_NNNN_TR_FL` where:
     - **SPUP:** Institution.
@@ -212,7 +213,7 @@
 
 - **Input for the Application Code**
   - **Progress Information:**  
-    *(Brief update on the paper’s progress)*
+    *(Brief update on the paper's progress)*
 
 - **Information shown to the Proponents:**
 
@@ -234,7 +235,7 @@
       *(Downloadable link)*
     - Form 07C: Informed Consent Template  
       *(Downloadable link)*
-    - Form 07B: Adviser’s Certification Form  
+    - Form 07B: Adviser's Certification Form  
       *(Downloadable link)*
     - Research Proposal/Study Protocol
     - Minutes of Proposal Defense

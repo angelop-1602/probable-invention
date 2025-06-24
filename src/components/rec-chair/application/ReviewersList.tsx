@@ -11,7 +11,7 @@ import { StatusBadge } from "@/components/ui/StatusBadge";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { ReviewersListProps } from "@/types/rec-chair";
-import { formatDate } from "@/lib/utils";
+import { formatDate } from "@/lib/application/application.utils";
 import { AlertCircle, X, Search, FileText } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { ReviewerAssignmentService, ReviewerAssignment, ReviewerAssignmentInput } from '@/lib/reviewers/reviewer-assignment.service';

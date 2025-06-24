@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import Link from 'next/link';
 import { 
   UserPlus, 
   FileText, 
@@ -175,13 +176,13 @@ export function ProcessTracker() {
   };
 
   return (
-    <section id="process" className="py-16 bg-spup-light-gray">
-      <div className="container mx-auto px-4">
-        <div className="text-center mb-12">
-          <h2 className="font-montserrat font-bold text-4xl text-spup-green mb-4">
+    <section id="process" className="py-12 sm:py-16 bg-spup-light-gray">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center mb-8 sm:mb-12">
+          <h2 className="font-montserrat font-bold text-2xl sm:text-3xl md:text-4xl text-spup-green mb-4">
             Research Ethics Review Process
           </h2>
-          <p className="text-lg text-spup-dark-gray max-w-3xl mx-auto">
+          <p className="text-base sm:text-lg text-spup-dark-gray max-w-3xl mx-auto">
             Follow these eight steps to obtain ethical clearance for your research from SPUP REC
           </p>
         </div>
@@ -257,6 +258,27 @@ export function ProcessTracker() {
                                     <div className="text-sm text-gray-600">{reviewType.action}</div>
                                   </div>
                                 ))}
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Special Sign In Button for Step 1 */}
+                          {step.step === 1 && (
+                            <div className="mb-6">
+                              <h4 className="font-semibold text-lg text-spup-green mb-3 flex items-center">
+                                <UserPlus className="h-5 w-5 mr-2" />
+                                Get Started:
+                              </h4>
+                              <div className="bg-gradient-to-r from-yellow-50 to-yellow-100 border-l-4 border-yellow-500 p-4 rounded-r">
+                                <p className="text-spup-dark-gray mb-4">
+                                  Ready to submit your research protocol? Create your proponent account to get started with the submission process.
+                                </p>
+                                <Link href="/auth/sign-in">
+                                  <Button className="bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 text-white font-semibold px-6 py-2 rounded-lg shadow-lg transition-all duration-300 transform hover:scale-105">
+                                    <UserPlus className="h-4 w-4 mr-2" />
+                                    Create Account / Sign In
+                                  </Button>
+                                </Link>
                               </div>
                             </div>
                           )}

@@ -16,7 +16,9 @@ import {
     BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { cn } from "@/lib/utils";
-import { ChevronRight, Home } from "lucide-react";
+import { ChevronRight, Home, User } from "lucide-react";
+import { useProponentAuthContext } from "@/lib/auth/proponent-auth-context";
+import { SignOutButton } from "@/components/auth/SignOutButton";
 
 interface ProponentHeaderProps {
     title: string;
@@ -34,12 +36,12 @@ export function ProponentHeader({
     showNav = true,
 }: ProponentHeaderProps) {
     const pathname = usePathname();
+    const { user } = useProponentAuthContext();
 
     // Define navigation links
     const navLinks = [
         { name: "Home", href: "/dashboard" },
         { name: "Submission", href: "/submission-application" },
-        { name: "Sign out", href: "/signout" },
     ];
 
 
@@ -48,34 +50,38 @@ export function ProponentHeader({
             <CardContent className="p-0">
                 <div className="flex flex-col space-y-3">
                     {/* Logo and Title */}
-                    <div className="flex items-center mb-4 justify-center">
-                        <div className="flex flex-col text-center">
+                    <div className="flex items-center mb-4 justify-between">
+                        <div className="flex flex-col text-center flex-1">
                             <h1 className="text-2xl font-bold">{title}</h1>
                             {subtitle && (
                                 <div className="text-muted-foreground text-sm">{subtitle}</div>
                             )}
                         </div>
+                        
+                        {/* User info and sign out */}
+                        
                     </div>
 
                     {/* Navigation Links */}
-                    {showNav && (
-                        <div className="flex items-center justify-center border-y py-2">
-                            <nav className="flex space-x-6">
-                                {navLinks.map((link) => (
-                                    <Link
-                                        key={link.href}
-                                        href={link.href}
-                                        className={cn(
-                                            "text-sm font-medium transition-colors hover:text-primary",
-                                            pathname === link.href
-                                                ? "text-primary font-semibold border-b-2 border-primary pb-1"
-                                                : "text-muted-foreground"
-                                        )}
-                                    >
-                                        {link.name}
-                                    </Link>
-                                ))}
+                    {showNav && user && (
+                        <div className="flex items-center justify-between border-y py-2">
+                            {/* Navigation links in the center */}
+                            <nav className="flex items-center space-x-6">
+                                <Link href="/dashboard" className="text-gray-600 hover:text-green-600 transition-colors">
+                                    Dashboard
+                                </Link>
+                                <Link href="/submission-application" className="text-gray-600 hover:text-green-600 transition-colors">
+                                    Submit Application
+                                </Link>
                             </nav>
+                            
+                            <div className="flex items-center space-x-4">
+                                <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+                                    <User className="h-4 w-4" />
+                                    <span>{user.email}</span>
+                                </div>
+                                <SignOutButton size="sm" />
+                            </div>
                         </div>
                     )}
 

@@ -2,7 +2,7 @@
  * Utility functions for the REC Chair Application components
  */
 import { Document } from "@/types/rec-chair";
-import { formatDate as globalFormatDate } from "@/lib/utils";
+import { formatDate as globalFormatDate } from "@/lib/application/application.utils";
 
 /**
  * Format date from any timestamp format to a localized date string

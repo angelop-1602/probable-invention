@@ -9,24 +9,28 @@ import { ChevronDown, ChevronUp } from "@/components/ui/Icons";
 export function FAQSection() {
   const faqs = [
     {
-      question: "What's the difference between an Application Code and SPUP REC Code?",
-      answer: "The Application Code is generated immediately upon submission and is used to track your application. The SPUP REC Code is assigned by the REC Chair after confirming your submission is complete, and follows the format SPUP_YYYY_NNNN_TR_FL."
+      question: "What is the difference between Application Code and SPUP REC Code?",
+      answer: "Your Application Code (format: RECYYYYRC) is automatically generated when you submit your protocol and is used for tracking your submission. Your SPUP REC Code (format: SPUP_YYYY_NNNN_TR_FL) is the official protocol identifier assigned by the REC Chair after the initial review and completeness check."
+    },
+    {
+      question: "How do I get my SPUP REC Code?",
+      answer: "You'll receive your SPUP REC Code after the REC Chair confirms that your application is complete and ready for review. This code will be displayed in your application tracker and will appear at the bottom left of your protocol title. You can track your application using either your Application Code or SPUP REC Code."
     },
     {
       question: "How do I check the status of my submission?",
-      answer: "Enter your Application Code in the tracking section at the top of this page. The system will display your current status, including which stage of the review process your submission is in."
+      answer: "You can check the status of your submission by clicking the 'Track Application' button on the top right of the page and entering either your Application Code or SPUP REC Code. You will be redirected to the tracking system where you can see the current status and progress of your submission."
     },
     {
       question: "What should I do if my application requires revisions?",
-      answer: "If revisions are required, you'll receive detailed feedback from the reviewers. Access your application through the tracking system, and you'll find instructions for submitting revised documents along with Form 08A (Resubmission Form)."
+      answer: "If revisions are required, you'll receive detailed feedback from the reviewers through your application tracker. Access your application using your tracking code, and you'll find instructions for submitting revised documents along with Form 08A (Resubmission Form)."
     },
     {
       question: "How often should I submit Progress Reports?",
-      answer: "The frequency of Progress Reports depends on the nature of your research and will be specified in your approval letter. Typically, they are required every 3-6 months, but this may vary. You'll need to submit Form 09B for Progress Reports."
+      answer: "The frequency of Progress Reports depends on the nature of your research and will be specified in your approval letter. Typically, they are required every 3-6 months, but this may vary. You'll need to submit Form 09B for Progress Reports through your application tracker."
     },
     {
       question: "How long does the review process take?",
-      answer: "The review timeline varies depending on the complexity of your protocol and the completeness of your submission. Generally, initial review takes 2-4 weeks after submission, but this can vary. You can always check your current status using the tracking system."
+      answer: "The review timeline varies depending on the complexity of your protocol and the completeness of your submission. Generally, initial review takes 2-4 weeks after the REC Chair's completeness check, but this can vary. You can always check your current status using the tracking system."
     }
   ];
 
@@ -39,13 +43,13 @@ export function FAQSection() {
   };
 
   return (
-    <div className="py-16 bg-gray-50 scroll-mt-20" id="faqs">
-      <div className="container mx-auto px-6">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold text-gray-800">
+    <div className="py-12 sm:py-16 bg-gray-50 scroll-mt-20" id="faqs">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center mb-8 sm:mb-12">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-800">
             Frequently Asked Questions
           </h2>
-          <p className="mt-4 text-gray-600 max-w-2xl mx-auto">
+          <p className="mt-4 text-base sm:text-lg text-gray-600 max-w-2xl mx-auto">
             Common questions about the protocol submission and review process
           </p>
         </div>

@@ -27,72 +27,66 @@ const AboutSection = () => {
 
   const members = [
     {
-      name: "Mrs. Rita B. Daliwag",
-      role: "Chair",
-      photo: "/Image of Members/Daliwag, Rita B..jpg",
-      email: "rdaliwag@spup.edu.ph",
+      name: "Dr. Elizabeth Iquin",
+      role: "REC Chairperson",
+      qualifications: "MD, MPH",
+      photo: "/Image of Members/elizabeth iquin.png",
     },
     {
-      name: "Dr. Jose Miguel Santos",
-      role: "Vice-Chair",
-      photo: "/lovable-uploads/fbbb5ebd-47fd-442b-81ae-76861ab4bbd1.png",
-      email: "j.santos@spup.edu.ph",
+      name: "Dr. Angelo P. Peralta",
+      role: "REC Vice-Chairperson",
+      qualifications: "PhD in Educational Management",
+      photo: "/Image of Members/Peralta, Angelo P.png",
     },
     {
-      name: "Prof. Elena Victoria Cruz",
-      role: "Secretary",
-      photo: "/lovable-uploads/8f26c127-a099-4c61-8581-3f14b3177c62.png",
-      email: "e.cruz@spup.edu.ph",
+      name: "Dr. Nova R. Domingo",
+      role: "REC Secretary",
+      qualifications: "PhD in Nursing",
+      photo: "/Image of Members/Domingo, Nova R.png",
     },
     {
-      name: "Dr. Carmen Isabel Flores",
-      role: "Member",
-      photo: "/lovable-uploads/1b4ebfaf-586f-403b-951d-73065fee755c.png",
-      email: "c.flores@spup.edu.ph",
+      name: "Dr. Everett T. Laureta",
+      role: "REC Member",
+      qualifications: "PhD in Psychology",
+      photo: "/Image of Members/Laureta, Everett T.png",
     },
     {
-      name: "Dr. Ana Luisa Garcia",
-      role: "Member",
-      photo: "/lovable-uploads/7fe6aaa0-ad5d-4151-a39f-268f9941546e.png",
-      email: "a.garcia@spup.edu.ph",
+      name: "Dr. Sergio G. Imperio",
+      role: "REC Member",
+      qualifications: "MD, Specialist in Internal Medicine",
+      photo: "/Image of Members/Imperio, Sergio G.png",
     },
     {
-      name: "Dr. Roberto Alejandro Tan",
-      role: "Member",
-      photo: "/lovable-uploads/d7134f98-a93f-4e2c-9062-d76c752f287a.png",
-      email: "r.tan@spup.edu.ph",
+      name: "Dr. Maria Felina B. Agbayani",
+      role: "REC Member",
+      qualifications: "PhD in Education",
+      photo: "/Image of Members/Agbayani, Maria Felina B.png",
     },
     {
-      name: "Dr. Francisco Manuel Lopez",
-      role: "Member",
-      photo: "/lovable-uploads/aaaebef2-2302-4694-98da-66c499df3869.png",
-      email: "f.lopez@spup.edu.ph",
+      name: "Dr. Claudeth U. Gamiao",
+      role: "REC Member",
+      qualifications: "PhD in Education",
+      photo: "/Image of Members/Gamiao, Claudeth U.png",
     },
     {
-      name: "Dr. Daniel Antonio Ramos",
-      role: "Member",
-      photo: "/lovable-uploads/dffb3ee9-7ee1-4f42-aa71-890cd67cb210.png",
-      email: "d.ramos@spup.edu.ph",
+      name: "Dr. Allan Paulo L. Blaquera",
+      role: "REC Member",
+      qualifications: "PhD in Business Administration",
+      photo: "/Image of Members/Blaquera, Allan Paulo L.png",
     },
     {
-      name: "Dr. Mark Christopher Silva",
-      role: "Staff",
-      photo: "/lovable-uploads/81889c4b-e87e-4643-898e-026421d6faec.png",
-      email: "m.silva@spup.edu.ph",
-    },
-    {
-      name: "Dr. John Patrick Rivera",
-      role: "Staff",
-      photo: "/lovable-uploads/99502302-592f-4f9a-b2e2-f7dc5b41a9de.png",
-      email: "j.rivera@spup.edu.ph",
+      name: "Dr. Marjorie L. Bambalan",
+      role: "REC Member",
+      qualifications: "PhD in Education",
+      photo: "/Image of Members/Bambalan, Marjorie L.png",
     },
   ];
 
   return (
-    <section id="about" className="py-16 bg-spup-light-gray scroll-mt-20">
-      <div className="container mx-auto px-4">
+    <section id="about" className="py-12 sm:py-16 bg-spup-light-gray scroll-mt-20">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto text-center">
-          <h2 className="font-montserrat font-bold text-3xl md:text-4xl text-primary mb-8">
+          <h2 className="font-montserrat font-bold text-2xl sm:text-3xl md:text-4xl text-primary mb-6 sm:mb-8">
             About SPUP Research Ethics Committee
           </h2>
 
@@ -158,7 +152,7 @@ const AboutSection = () => {
                 className="mt-8 scroll-mt-[9.375rem]"
                 id="members"
               >
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6">
                   {members.map((member) => (
                     <div
                       key={member.name}
@@ -184,7 +178,7 @@ const AboutSection = () => {
                             {member.role}
                           </p>
                           <p className="text-xs text-white hidden group-hover:block transition-opacity duration-300">
-                            {member.email}
+                            {member.qualifications}
                           </p>
                         </div>
                       </div>

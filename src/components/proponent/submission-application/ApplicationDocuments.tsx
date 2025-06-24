@@ -2,23 +2,24 @@
 
 import * as React from "react";
 import { useState } from "react";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FileUploader } from "@/components/ui/file-upload";
 import { Button } from "@/components/ui/button";
 import { Download, Plus } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 
 // Define accepted file types
 const acceptedTypes = {
-  'application/pdf': ['.pdf'],
+  "application/pdf": [".pdf"],
 };
 
 interface DocumentInfo {
@@ -44,75 +45,89 @@ interface ApplicationDocumentsProps {
   applicationCode?: string;
 }
 
-const requiredDocuments: DocumentInfo[] = [
-  { 
-    id: 'form07A', 
-    title: 'Form 07A – Protocol Review Application', 
+// Documents based on submission.json structure
+const basicRequirements: DocumentInfo[] = [
+  {
+    id: "informed_consent",
+    title: "Informed Consent Form",
     required: true,
-    description: 'Upload the completed Protocol Review Application form',
+    description: "Upload the completed informed consent form",
     hasTemplate: true,
-    templateUrl: '/templates/form07A.docx'
+    templateUrl: "/templates/informed-consent.docx",
   },
-  { 
-    id: 'form07B', 
-    title: 'Form 07B – Adviser\'s Certification', 
+  {
+    id: "advisers_certification",
+    title: "Endorsement Letter/Adviser's Certification",
     required: true,
-    description: 'Upload the signed Adviser\'s Certification form',
+    description:
+      "Upload the signed endorsement letter or adviser's certification",
     hasTemplate: true,
-    templateUrl: '/templates/form07B.docx'
+    templateUrl: "/templates/advisers-certification.docx",
   },
-  { 
-    id: 'form07C', 
-    title: 'Form 07C – Informed Consent Form', 
-    required: false,
-    description: 'Upload the completed Informed Consent Form',
-    hasTemplate: true,
-    templateUrl: '/templates/form07C.docx'
-  },
-  { 
-    id: 'researchProposal', 
-    title: 'Research Proposal or Study Protocol', 
+  {
+    id: "research_proposal",
+    title: "Research Proposal/Study Protocol",
     required: true,
-    description: 'Upload your complete research proposal document'
+    description:
+      "Upload your complete research proposal or study protocol document",
   },
-  { 
-    id: 'minutesOfProposalDefense', 
-    title: 'Minutes of Proposal Defense', 
-    required: false,
-    description: 'Upload the official minutes from your proposal defense'
+  {
+    id: "minutes_proposal_defense",
+    title: "Minutes of Proposal Defense",
+    required: true,
+    description: "Upload the official minutes from your proposal defense",
   },
-  { 
-    id: 'abstract', 
-    title: 'Abstract', 
-    required: false,
-    description: 'Upload a brief summary of your research'
+  {
+    id: "curriculum_vitae",
+    title: "Curriculum Vitae of Researchers",
+    required: true,
+    description: "Upload CVs of all research team members",
+    multiple: true,
   },
-  { 
-    id: 'curriculumVitae', 
-    title: 'Curriculum Vitae of all researchers', 
-    required: false,
-    description: 'Upload CVs of all research team members',
-    multiple: true
-  },
-  { 
-    id: 'questionnaires', 
-    title: 'Questionnaire or Data Collection Tools', 
-    required: false,
-    description: 'Upload all research instruments and data collection tools',
-    multiple: true
-  },
-  { 
-    id: 'technicalReview', 
-    title: 'Technical Review Approval', 
-    required: false,
-    description: 'Upload technical review approval if applicable'
-  }
 ];
 
-export default function ApplicationDocuments({ onDocumentsChange, isSubmitting }: ApplicationDocumentsProps) {
+const supplementaryDocuments: DocumentInfo[] = [
+  {
+    id: "questionnaire",
+    title: "Questionnaire",
+    required: false,
+    description: "Upload research questionnaires if applicable",
+    multiple: true,
+  },
+  {
+    id: "data_collection_forms",
+    title: "Data Collection Forms",
+    required: false,
+    description: "Upload all data collection forms and instruments",
+    multiple: true,
+  },
+  {
+    id: "technical_review",
+    title: "Technical Review Approval (if applicable)",
+    required: false,
+    description: "Upload technical review approval if your study requires it",
+  },
+  {
+    id: "abstract",
+    title: "Abstract",
+    required: true,
+    description: "Upload a brief summary of your research (maximum 250 words)",
+  },
+  {
+    id: "payment_proof",
+    title: "Proof of Payment of Ethics Review Fee",
+    required: false,
+    description: "Upload proof of payment for the ethics review fee",
+  },
+];
+
+export default function ApplicationDocuments({
+  onDocumentsChange,
+  isSubmitting,
+}: ApplicationDocumentsProps) {
   const [documents, setDocuments] = useState<DocumentFile>({});
   const [isAddingDocument, setIsAddingDocument] = useState(false);
-  const [newDocumentTitle, setNewDocumentTitle] = useState('');
+  const [newDocumentTitle, setNewDocumentTitle] = useState("");
   const [customDocuments, setCustomDocuments] = useState<DocumentInfo[]>([]);
 
   const handleFileChange = (documentId: string, files: File[]) => {
@@ -120,10 +135,13 @@ export default function ApplicationDocuments({ onDocumentsChange, isSubmitting }
       ...documents,
       [documentId]: {
         files,
-        title: requiredDocuments.find(doc => doc.id === documentId)?.title || 
-               customDocuments.find(doc => doc.id === documentId)?.title ||
-               documentId
-      }
+        title:
+          [...basicRequirements, ...supplementaryDocuments].find(
+            (doc) => doc.id === documentId
+          )?.title ||
+          customDocuments.find((doc) => doc.id === documentId)?.title ||
+          documentId,
+      },
     };
     setDocuments(updatedDocuments);
     onDocumentsChange(updatedDocuments);
@@ -131,24 +149,24 @@ export default function ApplicationDocuments({ onDocumentsChange, isSubmitting }
 
   const handleAddCustomDocument = () => {
     if (!newDocumentTitle.trim()) return;
-    
+
     const newDocId = `custom-${Date.now()}`;
     const newDoc: DocumentInfo = {
       id: newDocId,
       title: newDocumentTitle,
       required: false,
-      description: 'Additional document',
-      multiple: false
+      description: "Additional document",
+      multiple: false,
     };
-    
-    setCustomDocuments(prev => [...prev, newDoc]);
-    setNewDocumentTitle('');
+
+    setCustomDocuments((prev) => [...prev, newDoc]);
+    setNewDocumentTitle("");
     setIsAddingDocument(false);
   };
 
   const handleDownload = (templateUrl: string) => {
     // In a real application, this would download the template
-    console.log('Downloading template:', templateUrl);
+    console.log("Downloading template:", templateUrl);
   };
 
   if (isSubmitting) {
@@ -157,64 +175,227 @@ export default function ApplicationDocuments({ onDocumentsChange, isSubmitting }
 
   return (
     <Card>
-      <CardHeader className="flex flex-row items-end justify-end">
-        <Dialog open={isAddingDocument} onOpenChange={setIsAddingDocument}>
-          <DialogTrigger asChild>
-            <Button variant="outline" size="sm">
-              <Plus className="h-4 w-4 mr-2" />
-              Additional Document
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Add Additional Document</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4 py-4">
-              <div className="space-y-2">
-                <Label htmlFor="title">Document Title</Label>
-                <Input
-                  id="title"
-                  value={newDocumentTitle}
-                  onChange={(e) => setNewDocumentTitle(e.target.value)}
-                  placeholder="Enter document title"
-                />
-              </div>
-              <Button onClick={handleAddCustomDocument}>Add Document</Button>
+      <CardContent className="pt-6">
+        <div className="space-y-8">
+          {/* Basic Requirements */}
+          <div>
+            <h3 className="text-lg font-semibold mb-4 text-blue-700">
+              Basic Requirements
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {basicRequirements.map((doc) => (
+                <div
+                  key={doc.id}
+                  className="space-y-2 border rounded-lg p-4 bg-blue-50"
+                >
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-medium text-sm flex items-center">
+                      {doc.title}
+                      {doc.required && (
+                        <span className="text-red-500 ml-1">*</span>
+                      )}
+                      {documents[doc.id]?.files?.length > 0 && (
+                        <span className="ml-2 text-green-600 text-xs">✓</span>
+                      )}
+                    </h4>
+                    {"hasTemplate" in doc && doc.hasTemplate && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleDownload(doc.templateUrl!)}
+                      >
+                        <Download className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    {doc.description}
+                  </p>
+                  <FileUploader
+                    id={doc.id}
+                    accept={acceptedTypes}
+                    multiple={"multiple" in doc ? doc.multiple : false}
+                    onFilesSelected={(files) => handleFileChange(doc.id, files)}
+                    required={doc.required}
+                    disabled={isSubmitting}
+                    label={`Upload ${
+                      "multiple" in doc && doc.multiple ? "files" : "a file"
+                    } only PDF`}
+                  />
+                </div>
+              ))}
             </div>
-          </DialogContent>
-        </Dialog>
-      </CardHeader>
-      <CardContent>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[...requiredDocuments, ...customDocuments].map((doc) => (
-            <div key={doc.id} className="space-y-2 border rounded-lg p-4">
-              <div className="flex items-center justify-between">
-                <h3 className="font-medium text-sm">
-                  {doc.title}
-                  {doc.required && <span className="text-red-500 ml-1">*</span>}
-                </h3>
-                {'hasTemplate' in doc && doc.hasTemplate && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleDownload(doc.templateUrl!)}
-                  >
-                    <Download className="h-4 w-4" />
+          </div>
+
+          {/* Supplementary Documents */}
+          <div>
+            <div className="flex justify-between items-center mb-4">
+            <h3 className="text-lg font-semibold mb-4 text-green-700">
+              Supplementary Documents
+            </h3>
+            <Dialog open={isAddingDocument} onOpenChange={setIsAddingDocument}>
+              <DialogTrigger asChild>
+                <Button variant="outline" size="sm">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Other Documents
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Add Additional Document</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4 py-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="title">Document Title</Label>
+                    <Input
+                      id="title"
+                      value={newDocumentTitle}
+                      onChange={(e) => setNewDocumentTitle(e.target.value)}
+                      placeholder="Enter document title"
+                    />
+                  </div>
+                  <Button onClick={handleAddCustomDocument}>
+                    Add Document
                   </Button>
-                )}
-              </div>
-              <p className="text-xs text-muted-foreground">{doc.description}</p>
-              <FileUploader
-                id={doc.id}
-                accept={acceptedTypes}
-                multiple={'multiple' in doc ? doc.multiple : false}
-                onFilesSelected={(files) => handleFileChange(doc.id, files)}
-                required={doc.required}
-                disabled={isSubmitting}
-                label={`Upload ${('multiple' in doc && doc.multiple) ? 'files' : 'a file'} only PDF`}
-              />
+                </div>
+              </DialogContent>
+            </Dialog>
             </div>
-          ))}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {supplementaryDocuments.map((doc) => (
+                <div
+                  key={doc.id}
+                  className="space-y-2 border rounded-lg p-4 bg-green-50"
+                >
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-medium text-sm flex items-center">
+                      {doc.title}
+                      {doc.required && (
+                        <span className="text-red-500 ml-1">*</span>
+                      )}
+                      {documents[doc.id]?.files?.length > 0 && (
+                        <span className="ml-2 text-green-600 text-xs">✓</span>
+                      )}
+                    </h4>
+                    {"hasTemplate" in doc && doc.hasTemplate && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleDownload(doc.templateUrl!)}
+                      >
+                        <Download className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    {doc.description}
+                  </p>
+                  <FileUploader
+                    id={doc.id}
+                    accept={acceptedTypes}
+                    multiple={"multiple" in doc ? doc.multiple : false}
+                    onFilesSelected={(files) => handleFileChange(doc.id, files)}
+                    required={doc.required}
+                    disabled={isSubmitting}
+                    label={`Upload ${
+                      "multiple" in doc && doc.multiple ? "files" : "a file"
+                    } only PDF`}
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Custom Documents */}
+          {customDocuments.length > 0 && (
+            <div>
+              <h3 className="text-lg font-semibold mb-4 text-purple-700">
+                Additional Documents
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {customDocuments.map((doc) => (
+                  <div
+                    key={doc.id}
+                    className="space-y-2 border rounded-lg p-4 bg-purple-50"
+                  >
+                    <div className="flex items-center justify-between">
+                      <h4 className="font-medium text-sm flex items-center">
+                        {doc.title}
+                        {doc.required && (
+                          <span className="text-red-500 ml-1">*</span>
+                        )}
+                        {documents[doc.id]?.files?.length > 0 && (
+                          <span className="ml-2 text-green-600 text-xs">✓</span>
+                        )}
+                      </h4>
+                      {"hasTemplate" in doc && doc.hasTemplate && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDownload(doc.templateUrl!)}
+                        >
+                          <Download className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      {doc.description}
+                    </p>
+                    <FileUploader
+                      id={doc.id}
+                      accept={acceptedTypes}
+                      multiple={"multiple" in doc ? doc.multiple : false}
+                      onFilesSelected={(files) =>
+                        handleFileChange(doc.id, files)
+                      }
+                      required={doc.required}
+                      disabled={isSubmitting}
+                      label={`Upload ${
+                        "multiple" in doc && doc.multiple ? "files" : "a file"
+                      } only PDF`}
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Document Validation Summary */}
+        <div className="mt-6 p-4 bg-gray-50 rounded-lg border">
+          <h4 className="font-medium text-sm mb-3 text-gray-700">Document Submission Status</h4>
+          <div className="space-y-2">
+            {/* Required Documents Summary */}
+            {[...basicRequirements, ...supplementaryDocuments]
+              .filter(doc => doc.required)
+              .map(doc => {
+                const hasFiles = documents[doc.id]?.files?.length > 0;
+                return (
+                  <div key={doc.id} className="flex items-center justify-between text-sm">
+                    <span className={hasFiles ? 'text-green-700' : 'text-red-600'}>
+                      {doc.title}
+                    </span>
+                    <span className={`font-medium ${hasFiles ? 'text-green-600' : 'text-red-500'}`}>
+                      {hasFiles ? '✓ Uploaded' : '✗ Missing'}
+                    </span>
+                  </div>
+                );
+              })}
+          </div>
+          {/* Summary Message */}
+          <div className="mt-3 pt-3 border-t">
+            {[...basicRequirements, ...supplementaryDocuments]
+              .filter(doc => doc.required)
+              .every(doc => documents[doc.id]?.files?.length > 0) ? (
+              <p className="text-sm text-green-700 font-medium">
+                ✅ All required documents have been uploaded
+              </p>
+            ) : (
+              <p className="text-sm text-red-600 font-medium">
+                ⚠️ Please upload all required documents before submitting
+              </p>
+            )}
+          </div>
         </div>
       </CardContent>
     </Card>

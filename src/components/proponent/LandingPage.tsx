@@ -13,13 +13,15 @@ import AboutUs from "./landing/AboutUs";
  */
 export function ProponentLandingPage() {
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen overflow-x-hidden">
       <Header />
-      <Hero />
-      <InfoSection />
-      <AboutUs />
-      <ProcessTracker />
-      <FAQSection />
+      <main className="flex-1">
+        <Hero />
+        <InfoSection />
+        <AboutUs />
+        <ProcessTracker />
+        <FAQSection />
+      </main>
       <LandingFooter />
     </div>
   );

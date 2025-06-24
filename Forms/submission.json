@@ -1,0 +1,90 @@
+{
+    "general_information": {
+      "spup_rec_code": "disabled",
+      "protocol_title": "",
+      "principal_investigator": {
+        "name": "",
+        "position_institution": "",
+        "address": "",
+        "contact_number": "",
+        "email": ""
+      },
+      "co_researchers": [
+        {
+          "name": ""
+        }
+      ],
+      "advisers": [
+        {
+          "name": ""
+        }
+      ]
+    },
+    "nature_and_type_of_study": {
+      "level": [
+        "Undergraduate Thesis",
+        "Master’s Thesis",
+        "Doctoral Dissertation",
+        "Faculty/Staff",
+        "Funded Research",
+        "Others"
+      ],
+      "type": [
+        "Social/Behavioral",
+        "Public Health Research",
+        "Health Operations",
+        "Biomedical Studies",
+        "Clinical Trials",
+        "Others"
+      ]
+    },
+    "study_site": {
+      "research_within_university": true,
+      "research_outside_university": {
+        "is_outside": false,
+        "specify": ""
+      }
+    },
+    "source_of_funding": {
+      "self_funded": false,
+      "institution_funded": false,
+      "government_funded": false,
+      "pharmaceutical_company": {
+        "is_funded": false,
+        "specify": ""
+      },
+      "scholarship": false,
+      "research_grant": false,
+      "others": ""
+    },
+    "duration_of_study": {
+      "start_date": "",
+      "end_date": ""
+    },
+    "participants": {
+      "number_of_participants": 0,
+      "type_and_description": ""
+    },
+    "brief_description_of_study": "",
+    "checklist_of_documents": {
+      "basic_requirements": [
+        "Endorsement Letter/Adviser’s Certification",
+        "Research Proposal/Study Protocol",
+        "Abstract",
+        "Minutes of Proposal Defense",
+        "Curriculum Vitae of Researchers",
+        "Informed Consent Form",
+        "Proof of payment of ethics review fee"
+      ],
+      "supplementary_documents": [
+        "Questionnaire",
+        "Data Collection Forms",
+        "Technical Review Approval (if applicable)",
+        "Product Brochure",
+        "Philippine FDA Marketing Authorization or Import License",
+        "Permit for Special Population",
+        "Others"
+      ]
+    }
+  }
+  
