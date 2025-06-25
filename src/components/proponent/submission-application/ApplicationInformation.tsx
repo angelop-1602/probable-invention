@@ -849,7 +849,7 @@ export const ApplicationInformation = ({
               <div className="flex items-center space-x-2">
                 <Checkbox
                   id="selfFunded"
-                  checked={formData.source_of_funding?.self_funded || false}
+                  checked={formData.source_of_funding?.self_funded || true}
                   onCheckedChange={(checked) => {
                     handleInputChange("source_of_funding.self_funded", checked);
                     setTouchedFields(prev => new Set([...prev, 'source_of_funding']));

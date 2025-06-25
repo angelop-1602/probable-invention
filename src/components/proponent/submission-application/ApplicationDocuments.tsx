@@ -169,9 +169,6 @@ export default function ApplicationDocuments({
     console.log("Downloading template:", templateUrl);
   };
 
-  if (isSubmitting) {
-    return <LoadingSpinner fullScreen />;
-  }
 
   return (
     <Card>
@@ -361,42 +358,6 @@ export default function ApplicationDocuments({
           )}
         </div>
 
-        {/* Document Validation Summary */}
-        <div className="mt-6 p-4 bg-gray-50 rounded-lg border">
-          <h4 className="font-medium text-sm mb-3 text-gray-700">Document Submission Status</h4>
-          <div className="space-y-2">
-            {/* Required Documents Summary */}
-            {[...basicRequirements, ...supplementaryDocuments]
-              .filter(doc => doc.required)
-              .map(doc => {
-                const hasFiles = documents[doc.id]?.files?.length > 0;
-                return (
-                  <div key={doc.id} className="flex items-center justify-between text-sm">
-                    <span className={hasFiles ? 'text-green-700' : 'text-red-600'}>
-                      {doc.title}
-                    </span>
-                    <span className={`font-medium ${hasFiles ? 'text-green-600' : 'text-red-500'}`}>
-                      {hasFiles ? '✓ Uploaded' : '✗ Missing'}
-                    </span>
-                  </div>
-                );
-              })}
-          </div>
-          {/* Summary Message */}
-          <div className="mt-3 pt-3 border-t">
-            {[...basicRequirements, ...supplementaryDocuments]
-              .filter(doc => doc.required)
-              .every(doc => documents[doc.id]?.files?.length > 0) ? (
-              <p className="text-sm text-green-700 font-medium">
-                ✅ All required documents have been uploaded
-              </p>
-            ) : (
-              <p className="text-sm text-red-600 font-medium">
-                ⚠️ Please upload all required documents before submitting
-              </p>
-            )}
-          </div>
-        </div>
       </CardContent>
     </Card>
   );

@@ -1,0 +1,50 @@
+[
+  {
+    "label": "Draft",
+    "description": "Submission incomplete",
+    "color": "Gray",
+    "hex": "#9CA3AF"
+  },
+  {
+    "label": "Submitted",
+    "description": "For review classification",
+    "color": "Blue",
+    "hex": "#3B82F6"
+  },
+  {
+    "label": "Under Review",
+    "description": "Assigned for assessment",
+    "color": "Indigo",
+    "hex": "#6366F1"
+  },
+  {
+    "label": "For Revision",
+    "description": "Requires modification",
+    "color": "Amber",
+    "hex": "#F59E0B"
+  },
+  {
+    "label": "Approved",
+    "description": "Granted ethical clearance",
+    "color": "Green",
+    "hex": "#10B981"
+  },
+  {
+    "label": "Ongoing",
+    "description": "Under implementation",
+    "color": "Teal",
+    "hex": "#14B8A6"
+  },
+  {
+    "label": "Completed/Terminated",
+    "description": "Study concluded",
+    "color": "Purple",
+    "hex": "#8B5CF6"
+  },
+  {
+    "label": "Archived",
+    "description": "Filed for record retention",
+    "color": "Dark Gray",
+    "hex": "#6B7280"
+  }
+]

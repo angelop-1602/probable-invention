@@ -1,6 +1,6 @@
 "use client";
 
-import { StatusBadge } from "@/components/ui/StatusBadge";
+import { ProtocolStatusBadge } from "@/components/ui/ProtocolStatusBadge";
 import { SpupRecCodeAssignment } from "./SpupRecCodeAssignment";
 import { Card, CardHeader, CardContent, CardTitle } from "@/components/ui/card";
 import { ProtocolInformation } from "./ProtocolInformation";

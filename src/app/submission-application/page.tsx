@@ -8,14 +8,14 @@ import { DuplicateConfirmationModal } from "@/components/proponent/submission-ap
 import { ProponentHeader } from "@/components/proponent/shared/ProponentHeader";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Loader2, AlertCircle, CheckCircle, Upload } from "lucide-react";
+import { Loader2, AlertCircle, Upload } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Progress } from "@/components/ui/progress";
 import { useProponentAuth } from "@/hooks/use-proponent-auth";
 import { SubmissionFormData, SubmissionStatus } from "@/lib/submission/submission.types";
 import { SubmissionService } from "@/lib/submission/submission.service";
 import { submissionSchema } from "@/lib/submission/submission.validation";
-import { validateSubmissionForm, getValidationSummary } from "@/lib/utils";
+// Removed unused validation imports - using simplified validation now
 import { toast } from "sonner";
 
 interface DocumentFile {
@@ -46,7 +46,7 @@ export default function SubmissionPage() {
   const [showDuplicateModal, setShowDuplicateModal] = useState(false);
   const [duplicates, setDuplicates] = useState<DuplicateApplication[]>([]);
   const [applicationCode, setApplicationCode] = useState("");
-  const [validationErrors, setValidationErrors] = useState<string[]>([]);
+  const [validationErrors, setValidationErrors] = useState<string[]>([]); // Used for field highlighting
 
   const router = useRouter();
   const { user } = useProponentAuth();
@@ -195,27 +195,11 @@ export default function SubmissionPage() {
         }
       }
 
-    } else if (currentStep === 2) {
-      // For step 2, validate basic documents for progression only
-      const basicRequiredDocs = [
-        { id: 'advisers_certification', name: 'Adviser\'s Certification' },
-        { id: 'research_proposal', name: 'Research Proposal' }
-      ];
-
-      const missingDocs = basicRequiredDocs.filter(doc => !documents[doc.id]?.files?.length);
-      if (missingDocs.length > 0) {
-        const docNames = missingDocs.map(doc => doc.name);
-        missingFields.push(...docNames);
-        errors.push(`Please upload these essential documents: ${docNames.join(', ')}`);
-      }
     }
+    // Step 2 has no validation requirements - documents are optional
 
-    // Only set global validation errors for step 2
-    if (currentStep === 2) {
-      setValidationErrors(errors);
-    } else {
-      setValidationErrors([]); // Clear any previous errors
-    }
+    // Clear validation errors since ApplicationInformation component handles its own validation
+    setValidationErrors([]);
     
     return {
       isValid: errors.length === 0,
@@ -224,18 +208,18 @@ export default function SubmissionPage() {
     };
   };
 
-  // Comprehensive validation for final submission
+  // Simplified validation for final submission - only form fields, no documents
   const validateCompleteSubmission = (): boolean => {
-    const validationResult = validateSubmissionForm(formData, documents);
+    // Use the same validation as step 1 since documents are optional
+    const validation = validateCurrentStep();
     
-    if (!validationResult.isValid) {
-      const summaryMessage = getValidationSummary(validationResult);
-      setValidationErrors(validationResult.errors.map(err => err.message));
+    if (!validation.isValid) {
+      setValidationErrors(validation.errors);
       
       // Show detailed toast with all errors
-      toast.error(summaryMessage, {
-        duration: 10000, // Show for 10 seconds
-        description: 'Please complete all required fields and documents before submitting.'
+      toast.error('Please complete all required form fields before submitting.', {
+        duration: 8000,
+        description: validation.missingFields.join(', ')
       });
       
       return false;
@@ -261,11 +245,7 @@ export default function SubmissionPage() {
 
     // Use COMPREHENSIVE validation for final submission
     if (!validateCompleteSubmission()) {
-      setError('Please fix all validation errors before submitting');
-      toast.error('Please complete all required fields and upload all required documents');
-      
-      // Scroll to top to show errors
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      // Don't set error state, just use toast for better UX
       return;
     }
 
@@ -303,6 +283,11 @@ export default function SubmissionPage() {
         throw new Error('User authentication required');
       }
 
+      console.log('=== STARTING SUBMISSION PROCESS ===');
+      console.log('User ID:', user.uid);
+      console.log('Form Data:', formData);
+      console.log('Documents to upload:', documents);
+
       // Convert DocumentFile format to DocumentUpload format
       const documentUploads: import('@/lib/submission/submission.types').DocumentUpload[] = [];
       
@@ -336,9 +321,12 @@ export default function SubmissionPage() {
         });
       });
 
+      console.log('Converted document uploads:', documentUploads);
+
       // Upload documents first if any exist
       if (documentUploads.length > 0) {
-        console.log('Uploading documents:', documentUploads.length);
+        console.log('=== UPLOADING DOCUMENTS ===');
+        console.log('Documents to upload:', documentUploads.length);
         
         const uploadResult = await submissionService.uploadDocuments(
           user.uid,
@@ -349,26 +337,38 @@ export default function SubmissionPage() {
           }
         );
 
+        console.log('Upload result:', uploadResult);
+
         if (!uploadResult.success) {
           throw new Error(uploadResult.errors?.join(', ') || 'Document upload failed');
         }
 
-        console.log('Documents uploaded successfully');
+        console.log('=== DOCUMENTS UPLOADED SUCCESSFULLY ===');
+      } else {
+        console.log('=== NO DOCUMENTS TO UPLOAD ===');
       }
 
-      // Add submitter UID to form data
-      const submissionData: SubmissionFormData = {
-        ...formData as SubmissionFormData,
+      // Prepare submission data with required fields - avoid undefined values
+      const submissionData = {
+        ...formData,
         submitter_uid: user.uid,
         submission_date: new Date().toISOString(),
         status: 'submitted' as SubmissionStatus
       };
 
+      console.log('=== SAVING STEP DATA ===');
+      console.log('Submission data:', submissionData);
+
       // Update form data in cache with submission info
       await submissionService.saveStepData(user.uid, submissionData, 2, documentUploads);
 
+      console.log('=== SUBMITTING APPLICATION ===');
+
       // Submit the application
       const result = await submissionService.submitApplication(user.uid);
+      
+      console.log('=== SUBMISSION RESULT ===');
+      console.log('Result:', result);
       
       if (!result.success) {
         throw new Error(result.errors?.join(', ') || 'Submission failed');
@@ -379,7 +379,10 @@ export default function SubmissionPage() {
       
       toast.success('Application submitted successfully!');
       
+      console.log('=== SUBMISSION COMPLETED SUCCESSFULLY ===');
+      
     } catch (error: any) {
+      console.error('=== SUBMISSION ERROR ===');
       console.error('Submission error:', error);
       throw error;
     } finally {
@@ -402,34 +405,35 @@ export default function SubmissionPage() {
     const validation = validateCurrentStep();
     
     if (validation.isValid) {
+      // Clear any previous validation errors
+      setValidationErrors([]);
       setCurrentStep(currentStep + 1);
-      toast.success('Step completed! Moving to next step.', {
-        description: 'All required fields have been filled.',
+      toast.success('Moving to next step!', {
+        description: 'You can now upload documents.',
         duration: 3000
       });
     } else {
-      // Show toast with missing fields
+      // Prevent progression and show validation errors
       const fieldsList = validation.missingFields.length <= 3 
         ? validation.missingFields.join(', ')
         : `${validation.missingFields.slice(0, 3).join(', ')} and ${validation.missingFields.length - 3} more field(s)`;
         
-      toast.error(`Please complete the following required fields:`, {
+      toast.error(`Please complete all required fields before proceeding:`, {
         description: fieldsList,
         duration: 8000
       });
 
-      // Scroll to top to show validation errors
-      window.scrollTo({ 
-        top: 0, 
-        behavior: 'smooth' 
-      });
-
       // Trigger field highlighting by broadcasting validation event
-      // This will cause ApplicationInformation component to show all errors
       const validationEvent = new CustomEvent('highlightRequiredFields', {
         detail: { missingFields: validation.missingFields, errors: validation.errors }
       });
       window.dispatchEvent(validationEvent);
+      
+      // Set validation errors for field highlighting
+      setValidationErrors(validation.errors);
+      
+      // DO NOT allow progression - user must fix the fields first
+      return;
     }
   };
 
@@ -461,16 +465,7 @@ export default function SubmissionPage() {
           </div>
           </div>
 
-        {/* Only show validation summary for final submission, not for inline validation */}
-        {validationErrors.length > 0 && currentStep === 2 && (
-          <Alert variant="destructive" className="mb-6">
-            <AlertCircle className="h-4 w-4" />
-            <AlertTitle>Please complete all required fields</AlertTitle>
-            <AlertDescription>
-              Some required fields are missing. Please review the form and complete all required information before submitting.
-            </AlertDescription>
-          </Alert>
-        )}
+
 
         <div className="space-y-6">
           {currentStep === 1 ? (
@@ -520,56 +515,32 @@ export default function SubmissionPage() {
                 Next
               </Button>
             ) : (
-              <div className="flex flex-col space-y-4 ml-auto">
-                {/* Validation Check Button */}
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => {
-                    const isValid = validateCompleteSubmission();
-                    if (isValid) {
-                      toast.success('✅ All required fields and documents are complete! Ready to submit.', {
-                        duration: 5000,
-                        description: 'Your application passes all validation checks.'
-                      });
-                    }
-                    // Error handling is already done in validateCompleteSubmission
-                  }}
-                  disabled={isLoading || isSubmitting}
-                  className="w-full"
-                >
-                  <CheckCircle className="mr-2 h-4 w-4" />
-                  Check Application Completeness
-                </Button>
-                
-                {/* Submit Button */}
-                <Button
-                  type="button"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    handleSubmit(e);
-                  }}
-                  disabled={isLoading || isSubmitting}
-                  className="w-full"
-                >
-                  {isSubmitting ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Submitting...
-                    </>
-                  ) : isLoading ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Checking...
-                    </>
-                  ) : (
-                    <>
-                      <Upload className="mr-2 h-4 w-4" />
-                      Submit Application
-                    </>
-                  )}
-                </Button>
-              </div>
+              <Button
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  handleSubmit(e);
+                }}
+                disabled={isLoading || isSubmitting}
+                className="ml-auto"
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Submitting...
+                  </>
+                ) : isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Checking...
+                  </>
+                ) : (
+                  <>
+                    <Upload className="mr-2 h-4 w-4" />
+                    Submit Application
+                  </>
+                )}
+              </Button>
             )}
           </div>
         </div>

@@ -1,53 +1,101 @@
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { ProtocolStatusBadge } from "@/components/ui/ProtocolStatusBadge";
 import { cn } from "@/lib/utils";
+import { Calendar } from "lucide-react";
+import { FacebookStyleMessage } from "./FacebookStyleMessage";
 
 interface TitleSectionsProps {
-  protocolCode: string;
+  applicationCode?: string;
+  spupRecCode?: string;
   title: string;
   date: string;
+  status?: string;
+  progress?: string;
   className?: string;
+  applicationId?: string;
+  currentUserName?: string;
 }
 
 export default function TitleSections({
-  protocolCode,
+  applicationCode,
+  spupRecCode,
   title,
   date,
+  status = "Submitted",
+  progress,
   className,
+  applicationId = "",
+  currentUserName = "Angel Peralta",
 }: TitleSectionsProps) {
+  // Use progress if available, otherwise use status
+  const displayStatus = progress || status;
+
   return (
     <div className={cn("space-y-6", className)}>
-      {/* Protocol Code Section */}
-
-      {/* Title Section */}
+      {/* Title Section with Codes and Status */}
       <Card className="p-6 bg-white border-l-4 border-l-primary">
-        <div className="space-y-2">
-          <h1 className="text-2xl font-semibold text-gray-900 leading-tight">
+        <div className="space-y-4">
+          {/* Title */}
+          <h1 className="text-2xl font-semibold text-gray-900 mb-1 leading-tight">
             {title}
+            
           </h1>
           <div className="flex items-center justify-between">
-            <Badge
-              variant="outline"
-              className="px-4 py-1.5 text-sm font-medium border-primary text-primary"
-            >
-              Protocol Code: {protocolCode}
-            </Badge>
+          {applicationCode && (
+                <div className="flex items-center space-x-2 mt-0">
+                  <span className="text-sm text-gray-500">
+                    Application Code:
+                  </span>
+                  <span className="text-sm font-mono text-gray-400">
+                    {applicationCode}
+                  </span>
+                </div>
+              )}
+
+            {/* Submission Date */}
             <div className="flex items-center text-sm text-gray-600">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-4 w-4 mr-2"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                />
-              </svg>
+              <Calendar className="h-4 w-4 mr-2" />
               <span>Submitted on {date}</span>
+            </div>
+          </div>
+          
+          {/* Codes and Submission Date Row */}
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div className="flex flex-col space-x-4">
+              <div className="flex items-center space-x-2 border-2 border-dashed border-primary rounded-full px-4">
+                <span className="text-lg font-medium text-primary">SPUP REC Code:</span>
+                {spupRecCode ? (
+                  <Badge
+                    variant="outline"
+                    className="px-3 py-1 text-sm font-semibold border-primary text-primary bg-primary/10"
+                  >
+                    {spupRecCode}
+                  </Badge>
+                ) : (
+                  <span className="text-sm text-gray-400 italic">
+                    Not yet assigned by REC Chair
+                  </span>
+                )}
+              </div>
+            </div>
+            <div className="flex items-center space-x-3">
+              <span className="text-sm font-medium text-gray-700">Status:</span>
+              <ProtocolStatusBadge status={displayStatus} />
+            </div>
+          </div>
+
+          {/* Status Row */}
+          <div className="flex items-center justify-between">
+            
+<div></div>
+            <div className="flex items-center space-x-2">
+              <FacebookStyleMessage 
+                isInline={true} 
+                applicationId={applicationId}
+                currentUserRole="proponent"
+                currentUserName={currentUserName}
+              />
             </div>
           </div>
         </div>

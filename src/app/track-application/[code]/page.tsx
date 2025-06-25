@@ -6,10 +6,10 @@ import { db } from "@/lib/firebase";
 import { ProponentHeader } from "@/components/proponent/shared/ProponentHeader";
 import { ProtocolInformation } from "@/components/proponent/tracking-application/ProtocolInformation";
 import { ProtocolDocuments } from "@/components/proponent/tracking-application/ProtocolDocuments";
-import { MessageSection } from "@/components/proponent/tracking-application/MessageSection";
 import { Decision } from "@/components/proponent/tracking-application/Decision";
 import { ReportsSection } from "@/components/proponent/tracking-application/ReportsSection";
 import { ReportSubmissionDialog } from "@/components/proponent/tracking-application/ReportSubmissionDialog";
+
 import TitleSection from "@/components/proponent/tracking-application/TitleSection";
 import { toast } from "sonner";
 import { Card, CardContent } from "@/components/ui/card";
@@ -144,13 +144,41 @@ export default function TrackApplication({
           throw new Error('Application not found');
         }
 
+        // Helper function to format Firestore timestamps
+        const formatFirestoreDate = (timestamp: any): string => {
+          if (!timestamp) return 'Unknown';
+          
+          try {
+            let date: Date;
+            if (timestamp.toDate && typeof timestamp.toDate === 'function') {
+              // Firestore Timestamp
+              date = timestamp.toDate();
+            } else if (timestamp.seconds) {
+              // Firestore Timestamp object
+              date = new Date(timestamp.seconds * 1000);
+            } else {
+              // Regular date string or timestamp
+              date = new Date(timestamp);
+            }
+            
+            return date.toLocaleDateString('en-US', {
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric'
+            });
+          } catch (error) {
+            console.error('Error formatting date:', error);
+            return 'Unknown';
+          }
+        };
+
         // Transform the data for the UI
         const transformedData = {
           id: applicationDoc.id,
           title: applicationDoc.general_information?.protocol_title || applicationDoc.protocolDetails?.researchTitle || 'Untitled Protocol',
           applicationCode: applicationDoc.general_information?.application_code || applicationDoc.id,
           spupRecCode: applicationDoc.general_information?.spup_rec_code || applicationDoc.recCode,
-          submissionDate: applicationDoc.submittedAt || applicationDoc.proponent?.submissionDate,
+          submissionDate: formatFirestoreDate(applicationDoc.submittedAt || applicationDoc.proponent?.submissionDate),
           protocolInformation: {
             principalInvestigator: applicationDoc.general_information?.principal_investigator?.name || applicationDoc.proponent?.name || 'Unknown',
             email: applicationDoc.general_information?.principal_investigator?.email || applicationDoc.proponent?.email || 'Unknown',
@@ -183,9 +211,13 @@ export default function TrackApplication({
               return siteInfo.length > 0 ? siteInfo.join('; ') : 'Not specified';
             })(),
             
-            // Duration
-            startDate: applicationDoc.duration_of_study?.start_date,
-            endDate: applicationDoc.duration_of_study?.end_date,
+            // Duration (already strings from form, but check for timestamps)
+            startDate: typeof applicationDoc.duration_of_study?.start_date === 'string' 
+              ? applicationDoc.duration_of_study.start_date 
+              : formatFirestoreDate(applicationDoc.duration_of_study?.start_date),
+            endDate: typeof applicationDoc.duration_of_study?.end_date === 'string' 
+              ? applicationDoc.duration_of_study.end_date 
+              : formatFirestoreDate(applicationDoc.duration_of_study?.end_date),
             
             // Participants
             participantCount: applicationDoc.participants?.number_of_participants,
@@ -219,18 +251,20 @@ export default function TrackApplication({
               name: doc.title || doc.fileName || doc.name || 'Untitled Document',
               status: doc.status || 'Submitted',
               downloadUrl: doc.downloadUrl || doc.downloadLink || doc.url,
+              storagePath: doc.storagePath || doc.path,
               id: doc.id || doc.documentId,
               title: doc.title || doc.fileName || doc.name,
               category: doc.category || 'submission',
-              uploadDate: doc.uploadedAt || doc.uploadDate,
+              uploadDate: formatFirestoreDate(doc.uploadedAt || doc.uploadDate),
               version: doc.version || 1
             }));
           })(),
-          decision: {
-            status: applicationDoc.applicationStatus || 'Under Review',
-            date: applicationDoc.lastModified || applicationDoc.submittedAt,
-            comments: applicationDoc.comments || []
-          },
+          decision: applicationDoc.recDecision ? {
+            status: applicationDoc.recDecision.status || applicationDoc.applicationStatus || 'Under Review',
+            date: formatFirestoreDate(applicationDoc.recDecision.date || applicationDoc.lastModified),
+            comments: applicationDoc.recDecision.comments || applicationDoc.recDecision.notification,
+            type: applicationDoc.recDecision.type
+          } : null,
           progressReports: applicationDoc.progressReports || [],
           finalReport: applicationDoc.finalReport || null,
           archiving: applicationDoc.archiving || null
@@ -365,37 +399,53 @@ export default function TrackApplication({
           subtitle="Track your application status and progress"
         />
 
-        <div className="grid grid-cols-5 gap-4 mt-6">
-          <div className="col-span-5">
-            <TitleSection
-              title={applicationData.title}
-              protocolCode={applicationData.applicationCode || applicationData.spupRecCode}
-              date={applicationData.submissionDate}
-            />
+        <div className="space-y-6 mt-6">
+          {/* Title Section with Codes and Status */}
+          <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
+            <div className="flex-1">
+              <TitleSection
+                title={applicationData.title}
+                applicationCode={applicationData.applicationCode}
+                spupRecCode={applicationData.spupRecCode}
+                date={applicationData.submissionDate}
+                status={applicationData.protocolInformation.status}
+                progress={applicationData.protocolInformation.progress}
+                applicationId={applicationData.id}
+                currentUserName={applicationData.protocolInformation.principalInvestigator}
+              />
+            </div>
+          
           </div>
-          <div className="col-span-3">
+
+          {/* Decision Section - Only show when REC Chair provides actual decision document */}
+          {applicationData.decision && 
+            applicationData.decision.status && 
+            applicationData.decision.status !== 'Pending' && 
+            applicationData.decision.status !== 'Submitted' &&
+            applicationData.decision.comments &&
+            applicationData.decision.date &&
+            applicationData.decision.status !== 'Under Review' && (
+            <Decision decision={applicationData.decision} />
+          )}
+
+          {/* Information and Documents Side by Side */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <ProtocolInformation data={applicationData.protocolInformation} />
-          </div>
-          <div className="col-span-3">
             <ProtocolDocuments documents={applicationData.protocolDocuments} />
           </div>
-          <div className="col-span-2 col-start-4 row-start-2">
-            <MessageSection />
-          </div>
-          <div className="col-span-2 col-start-4 row-start-3">
-            <Decision decision={applicationData.decision} />
-          </div>
-          <div className="col-span-5">
+
+          {/* Research Reports Section - Only show when approved */}
+          {applicationData.protocolInformation.status?.toLowerCase() === 'approved' && (
             <ReportsSection
               progressReports={applicationData.progressReports}
               finalReport={applicationData.finalReport}
               archiving={applicationData.archiving}
               onSubmitProgressReport={handleSubmitProgressReport}
               onSubmitFinalReport={handleSubmitFinalReport}
-              isApproved={applicationData.protocolInformation.status === "Approved"}
+              isApproved={true}
               isCompleted={false}
             />
-          </div>
+          )}
         </div>
 
         <ReportSubmissionDialog

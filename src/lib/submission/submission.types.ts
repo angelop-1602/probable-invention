@@ -115,9 +115,6 @@ export interface SubmissionFormData {
   // Brief Description
   brief_description_of_study: string;
 
-  // Document Checklist
-  checklist_of_documents: DocumentChecklist;
-
   // System fields
   submitter_uid?: string;
   submission_date?: string;
@@ -135,6 +132,7 @@ export interface DocumentUpload {
   category: 'basic_requirements' | 'supplementary_documents';
   uploadProgress?: number;
   uploadedUrl?: string;
+  storagePath?: string;
   error?: string;
 }
 

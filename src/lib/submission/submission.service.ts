@@ -16,6 +16,7 @@ import {
   validateSubmissionData, 
   calculateSubmissionProgress 
 } from './submission.utils';
+import { removeUndefinedValues } from '../rec-chair/utils';
 import { submissionSchema, step1Schema, step2Schema } from './submission.validation';
 
 export class SubmissionService {
@@ -110,11 +111,7 @@ export class SubmissionService {
           number_of_participants: 0,
           type_and_description: ''
         },
-        brief_description_of_study: '',
-        checklist_of_documents: {
-          basic_requirements: [],
-          supplementary_documents: []
-        }
+        brief_description_of_study: ''
       };
 
       const documents: DocumentUpload[] = [];
@@ -215,19 +212,24 @@ export class SubmissionService {
       // Generate application code for file organization
       const applicationCode = generateApplicationCode();
       
-      // Upload documents
+            // Upload documents
       const uploadResults = await this.storage.uploadDocuments(
         documents,
         applicationCode,
         onProgress
       );
-      
+
       // Update documents with upload results
-      const updatedDocuments = documents.map(doc => ({
-        ...doc,
-        uploadedUrl: uploadResults[doc.id]?.downloadUrl,
-        error: uploadResults[doc.id]?.error
-      }));
+      const updatedDocuments = documents.map(doc => {
+        const result = uploadResults[doc.id];
+        
+        return {
+          ...doc,
+          uploadedUrl: result?.downloadUrl,
+          storagePath: result?.storagePath,
+          error: result?.error
+        };
+      });
       
       // Load existing form data and update with documents
       const existingData = await this.cache.loadFormData(userId);
@@ -283,7 +285,7 @@ export class SubmissionService {
    * Submit the complete application
    */
   public async submitApplication(userId: string): Promise<SubmissionResult> {
-    console.log('Starting application submission for user:', userId);
+          console.log('Starting application submission for user:', userId);
     
     try {
       // Load cached data
@@ -296,6 +298,8 @@ export class SubmissionService {
           errors: ['No form data found. Please complete the application form first.']
         };
       }
+
+      console.log('Raw form data before processing:', JSON.stringify(cachedData.formData, null, 2));
 
       // Validate submission data
       const validation = validateSubmissionData(cachedData.formData);
@@ -314,32 +318,87 @@ export class SubmissionService {
       
       console.log('Submitting application with code:', applicationCode);
       
-      // Prepare submission data for Firestore
-      const submissionData = {
-        ...cachedData.formData,
-        id: applicationCode, // Use application code as document ID
+      // Note: No longer saving checklist_of_documents as it's redundant with documents array
+
+      // Prepare submission data for Firestore with proper defaults
+      const rawSubmissionData = {
+        // Core form data with defaults for any missing optional fields
         general_information: {
-          ...cachedData.formData.general_information,
-          application_code: applicationCode // Store application code
-          // Note: spup_rec_code will be assigned later by REC Chair
+          application_code: applicationCode,
+          protocol_title: cachedData.formData.general_information?.protocol_title || '',
+          principal_investigator: {
+            name: cachedData.formData.general_information?.principal_investigator?.name || '',
+            position_institution: cachedData.formData.general_information?.principal_investigator?.position_institution || '',
+            address: cachedData.formData.general_information?.principal_investigator?.address || '',
+            contact_number: cachedData.formData.general_information?.principal_investigator?.contact_number || '',
+            email: cachedData.formData.general_information?.principal_investigator?.email || ''
+          },
+          co_researchers: cachedData.formData.general_information?.co_researchers || [],
+          advisers: cachedData.formData.general_information?.advisers || []
         },
+        nature_and_type_of_study: {
+          level: cachedData.formData.nature_and_type_of_study?.level || '',
+          type: cachedData.formData.nature_and_type_of_study?.type || ''
+        },
+        study_site: {
+          research_within_university: cachedData.formData.study_site?.research_within_university ?? true,
+          research_outside_university: {
+            is_outside: cachedData.formData.study_site?.research_outside_university?.is_outside ?? false,
+            specify: cachedData.formData.study_site?.research_outside_university?.specify || ''
+          }
+        },
+        source_of_funding: {
+          self_funded: cachedData.formData.source_of_funding?.self_funded ?? false,
+          institution_funded: cachedData.formData.source_of_funding?.institution_funded ?? false,
+          government_funded: cachedData.formData.source_of_funding?.government_funded ?? false,
+          pharmaceutical_company: {
+            is_funded: cachedData.formData.source_of_funding?.pharmaceutical_company?.is_funded ?? false,
+            specify: cachedData.formData.source_of_funding?.pharmaceutical_company?.specify || ''
+          },
+          scholarship: cachedData.formData.source_of_funding?.scholarship ?? false,
+          research_grant: cachedData.formData.source_of_funding?.research_grant ?? false,
+          others: cachedData.formData.source_of_funding?.others || ''
+        },
+        duration_of_study: {
+          start_date: cachedData.formData.duration_of_study?.start_date || '',
+          end_date: cachedData.formData.duration_of_study?.end_date || ''
+        },
+        participants: {
+          number_of_participants: cachedData.formData.participants?.number_of_participants || 0,
+          type_and_description: cachedData.formData.participants?.type_and_description || ''
+        },
+        brief_description_of_study: cachedData.formData.brief_description_of_study || '',
+        
+        // System fields
+        id: applicationCode,
+        submitter_uid: userId,
+        submission_date: new Date().toISOString(),
+        
+        // Documents array
         documents: cachedData.documents.map(doc => ({
           id: doc.id,
           title: doc.title,
-          downloadUrl: doc.uploadedUrl,
-          required: doc.required,
+          downloadUrl: doc.uploadedUrl || null,
+          storagePath: doc.storagePath || null,
+          required: doc.required || false,
           category: doc.category,
           uploadedAt: Timestamp.now()
         })),
+        
+        // Firestore metadata
         status: 'submitted' as SubmissionStatus,
         submittedBy: userId,
         submittedAt: Timestamp.now(),
         lastModified: Timestamp.now(),
         version: 1,
-        // Application status starts as pending submission check
         applicationStatus: 'Submission Check',
         progress: 'SC'
       };
+      
+      // Sanitize data to remove undefined values before Firestore submission
+      const submissionData = removeUndefinedValues(rawSubmissionData);
+      
+      console.log('Sanitized submission data:', submissionData);
       
       // Save to Firestore using application code as document ID
       const docRef = doc(this.firestore, this.SUBMISSIONS_COLLECTION, applicationCode);

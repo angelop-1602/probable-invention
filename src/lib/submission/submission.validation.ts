@@ -114,12 +114,12 @@ const participantsSchema = z.object({
 });
 
 /**
- * Document checklist validation schema
+ * Document checklist validation schema (legacy - no longer used)
  */
-const documentChecklistSchema = z.object({
-  basic_requirements: z.array(z.string()),
-  supplementary_documents: z.array(z.string()),
-});
+// const documentChecklistSchema = z.object({
+//   basic_requirements: z.array(z.string()),
+//   supplementary_documents: z.array(z.string()),
+// });
 
 /**
  * Main submission form validation schema
@@ -172,9 +172,6 @@ export const submissionSchema = z.object({
 
   // Brief Description
   brief_description_of_study: z.string().min(50, 'Brief description is required (minimum 50 characters)'),
-
-  // Document Checklist
-  checklist_of_documents: documentChecklistSchema,
 });
 
 /**
@@ -191,11 +188,9 @@ export const step1Schema = z.object({
 });
 
 /**
- * Step 2 validation schema (Documents)
+ * Step 2 validation schema (Documents) - No longer needed since documents are handled separately
  */
-export const step2Schema = z.object({
-  checklist_of_documents: submissionSchema.shape.checklist_of_documents,
-});
+export const step2Schema = z.object({});
 
 /**
  * Document upload validation schema
@@ -233,5 +228,5 @@ export const documentUploadSchema = z.object({
  */
 export type SubmissionFormData = z.infer<typeof submissionSchema>;
 export type Step1FormData = z.infer<typeof step1Schema>;
-export type Step2FormData = z.infer<typeof step2Schema>;
+export type Step2FormData = z.infer<typeof step2Schema>; // Empty since documents handled separately
 export type DocumentUploadData = z.infer<typeof documentUploadSchema>; 

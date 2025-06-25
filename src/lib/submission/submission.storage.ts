@@ -20,6 +20,7 @@ interface StorageOptions {
 interface UploadResult {
   success: boolean;
   downloadUrl?: string;
+  storagePath?: string;
   error?: string;
   fileHash?: string;
   compressedSize?: number;
@@ -138,6 +139,8 @@ export class SubmissionStorage {
       // Generate storage path
       const sanitizedTitle = sanitizeFilename(document.title);
       const storagePath = `submissions/${applicationCode}/documents/${sanitizedTitle}_${Date.now()}.zip`;
+      
+
 
       // Upload to Firebase Storage
       const storageRef = ref(this.storage, storagePath);
@@ -155,6 +158,8 @@ export class SubmissionStorage {
 
       // Get download URL
       const downloadUrl = await getDownloadURL(uploadResult.ref);
+      
+
 
       // Cache the file
       await this.storeInCache({
@@ -176,6 +181,7 @@ export class SubmissionStorage {
       return {
         success: true,
         downloadUrl,
+        storagePath,
         fileHash,
         compressedSize
       };

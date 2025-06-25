@@ -7,11 +7,11 @@ import { cn } from "@/lib/utils";
 interface DecisionProps {
   decision?: {
     status: string;
-    type: string;
+    type?: string;
     date: string;
-    comments: string;
-    nextSteps: string[];
-    documents: {
+    comments?: string;
+    nextSteps?: string[];
+    documents?: {
       name: string;
       status: string;
       dueDate: string;
@@ -86,10 +86,12 @@ export function Decision({ decision }: DecisionProps) {
               {decision.status}
             </Badge>
           </div>
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-gray-700">Review Type</span>
-            <span className="text-sm text-gray-600">{decision.type}</span>
-          </div>
+          {decision.type && (
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium text-gray-700">Review Type</span>
+              <span className="text-sm text-gray-600">{decision.type}</span>
+            </div>
+          )}
           <div className="flex items-center justify-between">
             <span className="text-sm font-medium text-gray-700">Decision Date</span>
             <span className="text-sm text-gray-600">{decision.date}</span>
@@ -121,7 +123,7 @@ export function Decision({ decision }: DecisionProps) {
           </div>
         )}
 
-        {decision.documents.length > 0 && (
+        {decision.documents && decision.documents.length > 0 && (
           <div className="border-t pt-4">
             <h3 className="font-medium mb-2">Required Documents</h3>
             <div className="space-y-2">

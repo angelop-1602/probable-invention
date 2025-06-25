@@ -1,6 +1,11 @@
+"use client";
+
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { User, GraduationCap, UserCog, Mail, FileSearch, MapPin, Activity, Calendar, Users, DollarSign, BookOpen, Clock, Target } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { User, GraduationCap, UserCog, Mail, FileSearch, MapPin, Activity, Calendar, Users, DollarSign, BookOpen, Clock, Target, ChevronDown, ChevronRight } from "lucide-react";
 
 interface ProtocolInformationProps {
   data: {
@@ -38,6 +43,18 @@ interface ProtocolInformationProps {
 }
 
 export function ProtocolInformation({ data }: ProtocolInformationProps) {
+  const [openSections, setOpenSections] = useState<Set<string>>(new Set(['basic'])); // Basic info open by default
+
+  const toggleSection = (section: string) => {
+    const newOpenSections = new Set(openSections);
+    if (newOpenSections.has(section)) {
+      newOpenSections.delete(section);
+    } else {
+      newOpenSections.add(section);
+    }
+    setOpenSections(newOpenSections);
+  };
+
   const getStatusColor = (status: string) => {
     const statusColors: Record<string, string> = {
       Draft: "bg-gray-100 text-gray-700",
@@ -88,43 +105,80 @@ export function ProtocolInformation({ data }: ProtocolInformationProps) {
     return progressLabels[progress] || progress;
   };
 
-  // Basic information items
+  // Basic Information Items
   const basicInfoItems = [
     { icon: User, label: "Principal Investigator", value: data.principalInvestigator },
     { icon: Mail, label: "Email", value: data.email },
-    { icon: GraduationCap, label: "Position/Institution", value: data.position || data.courseProgram || 'Unknown' },
-    { icon: UserCog, label: "Adviser", value: data.adviser }
-  ];
+    { icon: GraduationCap, label: "Course/Program", value: data.courseProgram || 'Unknown' },
+    { icon: UserCog, label: "Adviser", value: data.adviser },
+    { icon: FileSearch, label: "Type of Review", value: data.typeOfReview || 'Unknown' },
+  ].filter(item => item.value && item.value !== 'Unknown');
 
-  // Study details items
+  // Study Details Items
   const studyDetailsItems = [
-    { icon: BookOpen, label: "Study Level", value: data.studyLevel || 'Unknown' },
-    { icon: FileSearch, label: "Study Type", value: data.studyType || data.typeOfReview || 'Unknown' },
-    { icon: MapPin, label: "Study Site", value: data.studySite || 'Not specified' },
-    { icon: Clock, label: "Duration", value: formatDateRange() }
-  ];
+    { icon: BookOpen, label: "Study Level", value: data.studyLevel },
+    { icon: Target, label: "Study Type", value: data.studyType },
+    { icon: Calendar, label: "Start Date", value: data.startDate },
+    { icon: Calendar, label: "End Date", value: data.endDate },
+    { icon: MapPin, label: "Study Site", value: data.studySite },
+  ].filter(item => item.value);
 
-  // Participants and funding items
+  // Participants & Funding Items
   const participantsAndFundingItems = [
-    { icon: Users, label: "Number of Participants", value: data.participantCount ? data.participantCount.toString() : 'Not specified' },
-    { icon: DollarSign, label: "Funding Source", value: formatFundingSources() }
-  ];
+    { icon: Users, label: "Participant Count", value: data.participantCount?.toString() },
+    { icon: DollarSign, label: "Funding", value: data.funding },
+  ].filter(item => item.value);
 
-  // Status and progress items
-  const statusItems = [
-    { icon: Activity, label: "Status", value: data.status, isStatus: true },
-    { icon: Target, label: "Progress", value: formatProgressLabel(data.progress || 'SC'), isBadge: true }
-  ];
+  const CollapsibleSection = ({ 
+    id, 
+    title, 
+    icon: Icon, 
+    children 
+  }: { 
+    id: string; 
+    title: string; 
+    icon: any; 
+    children: React.ReactNode; 
+  }) => {
+    const isOpen = openSections.has(id);
+    
+    return (
+      <Collapsible open={isOpen} onOpenChange={() => toggleSection(id)}>
+        <CollapsibleTrigger asChild>
+          <Button
+            variant="ghost"
+            className="w-full justify-between p-0 h-auto hover:bg-transparent"
+          >
+            <div className="flex items-center space-x-2">
+              <Icon className="h-4 w-4 text-green-600" />
+              <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">
+                {title}
+              </h3>
+            </div>
+            {isOpen ? (
+              <ChevronDown className="h-4 w-4 text-gray-500" />
+            ) : (
+              <ChevronRight className="h-4 w-4 text-gray-500" />
+            )}
+          </Button>
+        </CollapsibleTrigger>
+        <CollapsibleContent className="mt-3">
+          {children}
+        </CollapsibleContent>
+      </Collapsible>
+    );
+  };
 
   return (
     <Card className="w-full h-full bg-white shadow-sm">
       <CardHeader className="border-b">
-        <CardTitle className="text-lg font-semibold text-green-800">Protocol Review Application Information</CardTitle>
+        <CardTitle className="text-lg font-semibold text-green-800">
+          Protocol Information
+        </CardTitle>
       </CardHeader>
       <CardContent className="pt-6 space-y-6">
-        {/* Basic Information */}
-        <div>
-          <h3 className="text-sm font-semibold text-gray-700 mb-3 uppercase tracking-wide">Basic Information</h3>
+        {/* Basic Information - Collapsible */}
+        <CollapsibleSection id="basic" title="Basic Information" icon={User}>
           <div className="space-y-3">
             {basicInfoItems.map((item, index) => (
               <div key={index} className="flex items-start space-x-3">
@@ -138,12 +192,11 @@ export function ProtocolInformation({ data }: ProtocolInformationProps) {
               </div>
             ))}
           </div>
-        </div>
+        </CollapsibleSection>
 
-        {/* Additional Contact Information */}
+        {/* Contact Details - Collapsible */}
         {(data.address || data.contactNumber) && (
-          <div>
-            <h3 className="text-sm font-semibold text-gray-700 mb-3 uppercase tracking-wide">Contact Details</h3>
+          <CollapsibleSection id="contact" title="Contact Details" icon={MapPin}>
             <div className="space-y-3">
               {data.address && (
                 <div className="flex items-start space-x-3">
@@ -168,13 +221,12 @@ export function ProtocolInformation({ data }: ProtocolInformationProps) {
                 </div>
               )}
             </div>
-          </div>
+          </CollapsibleSection>
         )}
 
-        {/* Co-Researchers */}
+        {/* Co-Researchers - Collapsible */}
         {data.coResearchers && data.coResearchers.length > 0 && (
-          <div>
-            <h3 className="text-sm font-semibold text-gray-700 mb-3 uppercase tracking-wide">Co-Researchers</h3>
+          <CollapsibleSection id="researchers" title="Co-Researchers" icon={Users}>
             <div className="space-y-2">
               {data.coResearchers.map((researcher, index) => (
                 <div key={index} className="flex items-center space-x-2">
@@ -183,88 +235,60 @@ export function ProtocolInformation({ data }: ProtocolInformationProps) {
                 </div>
               ))}
             </div>
-          </div>
+          </CollapsibleSection>
         )}
 
-        {/* Study Details */}
-        <div>
-          <h3 className="text-sm font-semibold text-gray-700 mb-3 uppercase tracking-wide">Study Details</h3>
-          <div className="space-y-3">
-            {studyDetailsItems.map((item, index) => (
-              <div key={index} className="flex items-start space-x-3">
-                <div className="mt-0.5">
-                  <item.icon className="h-4 w-4 text-green-600" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs text-muted-foreground mb-1">{item.label}</p>
-                  <p className="font-medium text-gray-900 text-sm">{item.value}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Participants & Funding */}
-        <div>
-          <h3 className="text-sm font-semibold text-gray-700 mb-3 uppercase tracking-wide">Participants & Funding</h3>
-          <div className="space-y-3">
-            {participantsAndFundingItems.map((item, index) => (
-              <div key={index} className="flex items-start space-x-3">
-                <div className="mt-0.5">
-                  <item.icon className="h-4 w-4 text-green-600" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs text-muted-foreground mb-1">{item.label}</p>
-                  <p className="font-medium text-gray-900 text-sm">{item.value}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Participant Description */}
-        {data.participantDescription && (
-          <div>
-            <h3 className="text-sm font-semibold text-gray-700 mb-3 uppercase tracking-wide">Participant Description</h3>
-            <p className="text-sm text-gray-900 leading-relaxed">{data.participantDescription}</p>
-          </div>
-        )}
-
-        {/* Brief Description */}
-        {data.briefDescription && (
-          <div>
-            <h3 className="text-sm font-semibold text-gray-700 mb-3 uppercase tracking-wide">Study Description</h3>
-            <p className="text-sm text-gray-900 leading-relaxed">{data.briefDescription}</p>
-          </div>
-        )}
-
-        {/* Status & Progress */}
-        <div>
-          <h3 className="text-sm font-semibold text-gray-700 mb-3 uppercase tracking-wide">Status & Progress</h3>
-          <div className="space-y-3">
-            {statusItems.map((item, index) => (
-              <div key={index} className="flex items-start space-x-3">
-                <div className="mt-0.5">
-                  <item.icon className="h-4 w-4 text-green-600" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs text-muted-foreground mb-1">{item.label}</p>
-                  {item.isStatus ? (
-                    <Badge variant="outline" className={getStatusColor(data.status)}>
-                      {data.status}
-                    </Badge>
-                  ) : item.isBadge ? (
-                    <Badge variant="outline" className="bg-blue-100 text-blue-700">
-                      {item.value}
-                    </Badge>
-                  ) : (
+        {/* Study Details - Collapsible */}
+        {studyDetailsItems.length > 0 && (
+          <CollapsibleSection id="study" title="Study Details" icon={BookOpen}>
+            <div className="space-y-3">
+              {studyDetailsItems.map((item, index) => (
+                <div key={index} className="flex items-start space-x-3">
+                  <div className="mt-0.5">
+                    <item.icon className="h-4 w-4 text-green-600" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs text-muted-foreground mb-1">{item.label}</p>
                     <p className="font-medium text-gray-900 text-sm">{item.value}</p>
-                  )}
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        </div>
+              ))}
+            </div>
+          </CollapsibleSection>
+        )}
+
+        {/* Participants & Funding - Collapsible */}
+        {participantsAndFundingItems.length > 0 && (
+          <CollapsibleSection id="funding" title="Participants & Funding" icon={DollarSign}>
+            <div className="space-y-3">
+              {participantsAndFundingItems.map((item, index) => (
+                <div key={index} className="flex items-start space-x-3">
+                  <div className="mt-0.5">
+                    <item.icon className="h-4 w-4 text-green-600" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs text-muted-foreground mb-1">{item.label}</p>
+                    <p className="font-medium text-gray-900 text-sm">{item.value}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CollapsibleSection>
+        )}
+
+        {/* Participant Description - Collapsible */}
+        {data.participantDescription && (
+          <CollapsibleSection id="participants" title="Participant Description" icon={Users}>
+            <p className="text-sm text-gray-900 leading-relaxed">{data.participantDescription}</p>
+          </CollapsibleSection>
+        )}
+
+        {/* Brief Description - Collapsible */}
+        {data.briefDescription && (
+          <CollapsibleSection id="description" title="Brief Description" icon={FileSearch}>
+            <p className="text-sm text-gray-900 leading-relaxed">{data.briefDescription}</p>
+          </CollapsibleSection>
+        )}
       </CardContent>
     </Card>
   );

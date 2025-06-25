@@ -1,0 +1,62 @@
+[
+  {
+    "label": "Pending Upload",
+    "meaning": "Required document not yet submitted",
+    "color": "Gray",
+    "hex": "#9CA3AF"
+  },
+  {
+    "label": "Submitted",
+    "meaning": "Document received but not yet reviewed",
+    "color": "Blue",
+    "hex": "#3B82F6"
+  },
+  {
+    "label": "Under Review",
+    "meaning": "Reviewer is currently evaluating the document",
+    "color": "Indigo",
+    "hex": "#6366F1"
+  },
+  {
+    "label": "Needs Revision",
+    "meaning": "Document requires corrections based on reviewer feedback",
+    "color": "Amber",
+    "hex": "#F59E0B"
+  },
+  {
+    "label": "Resubmitted",
+    "meaning": "Revised version has been uploaded and awaits new review",
+    "color": "Light Blue",
+    "hex": "#60A5FA"
+  },
+  {
+    "label": "Approved",
+    "meaning": "Document has been reviewed and accepted",
+    "color": "Green",
+    "hex": "#10B981"
+  },
+  {
+    "label": "Rejected",
+    "meaning": "Document is not acceptable; resubmission may not be allowed",
+    "color": "Red",
+    "hex": "#EF4444"
+  },
+  {
+    "label": "Expired",
+    "meaning": "Document validity period has lapsed (e.g., old ethical clearance)",
+    "color": "Rose",
+    "hex": "#F87171"
+  },
+  {
+    "label": "Archived",
+    "meaning": "Finalized/closed document, moved to inactive status",
+    "color": "Dark Gray",
+    "hex": "#6B7280"
+  },
+  {
+    "label": "Exempted",
+    "meaning": "Document reviewed and granted exemption (e.g., protocol exempt from review)",
+    "color": "Emerald",
+    "hex": "#34D399"
+  }
+]

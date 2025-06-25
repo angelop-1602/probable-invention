@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { StatusBadge } from "@/components/ui/StatusBadge";
+import { ProtocolStatusBadge } from "@/components/ui/ProtocolStatusBadge";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { ReviewersListProps } from "@/types/rec-chair";
@@ -230,9 +230,8 @@ export function ReviewersList({ application, reviewers, onUpdateApplication }: R
                     )}
                   </div>
                 </div>
-                <StatusBadge
+                <ProtocolStatusBadge
                   status={reviewer.status.toLowerCase() === "completed" ? "approved" : "under review"}
-                  customLabel={reviewer.status}
                 />
               </li>
             ))}

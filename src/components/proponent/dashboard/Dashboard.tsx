@@ -3,7 +3,7 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
-import { StatusBadge } from "@/components/ui/status-badge";
+import { ProtocolStatusBadge } from "@/components/ui/ProtocolStatusBadge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Protocol } from "@/lib/application";
 import { ProponentHeader } from "../shared/ProponentHeader";
@@ -66,16 +66,16 @@ export function Dashboard({ protocols, isLoading }: DashboardProps) {
                       
                     </div>
 
-                    <div>
-                      <p className="text-sm font-medium text-gray-700">SPUP REC Code:</p>
-                      <p className="text-sm text-gray-600">
+                    <div className="border border-primary pb-4">
+                      <p className="text-sm font-medium text-primary">SPUP REC Code:</p>
+                      <p className="text-sm text-primary">
                         {protocol.spupRecCode || "Not yet assigned"}
                       </p>
 
                     </div>
 
                     <div className="pt-4 flex justify-between space-x-3">
-                      <StatusBadge status={protocol.status} />
+                      <ProtocolStatusBadge status={protocol.status} />
                       {!protocol.spupRecCode && protocol.status === "draft" ? (
                         <Button
                           onClick={() => router.push(`/submission-application?edit=${protocol.id}`)}
